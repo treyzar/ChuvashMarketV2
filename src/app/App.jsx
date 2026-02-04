@@ -1,13 +1,8 @@
 import { withProviders } from "./providers";
-import { APP_CONFIG } from "./config";
+import { AppRoutes } from "../pages";
 
 export const App = () => {
-  return (
-    <div>
-      <h1>ChuvashMarket</h1>
-      <p>App initialized with FSD architecture</p>
-    </div>
-  );
+  return <AppRoutes />;
 };
 
 export default withProviders(App);

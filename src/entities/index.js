@@ -1,4 +1,5 @@
 // Entities barrel exports
 // Главные экспорты сущностей
 
-export { Product } from "./Product";
+export { ProductCard } from "./Product";
+

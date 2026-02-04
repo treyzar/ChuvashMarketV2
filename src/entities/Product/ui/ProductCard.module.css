@@ -1,0 +1,38 @@
+.card {
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(36, 63, 75, 0.08);
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.imageWrapper {
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #3f769a, #3a5981);
+  min-height: 180px;
+}
+
+.title {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #243f4b;
+}
+
+.price {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #3a5981;
+}
+
+.meta {
+  font-size: 0.8rem;
+  color: #6b7380;
+}
+
+.actions {
+  margin-top: 0.4rem;
+}
+

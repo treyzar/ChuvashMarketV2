@@ -1,0 +1,94 @@
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 2.5rem;
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 1.1rem 1.2rem;
+  box-shadow: 0 10px 22px rgba(36, 63, 75, 0.06);
+}
+
+.profileHeader {
+  margin-bottom: 0.75rem;
+}
+
+.profileName {
+  font-weight: 600;
+}
+
+.profileMeta {
+  font-size: 0.85rem;
+  color: #778f9e;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.field input,
+.field textarea {
+  border-radius: 10px;
+  border: 1px solid #a5aaaf;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.9rem;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.listRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background-color: #f0f7fb;
+  color: #3a5981;
+  font-size: 0.8rem;
+}
+
+.hint {
+  font-size: 0.9rem;
+  color: #778f9e;
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding-inline: 0.75rem;
+  }
+
+  .listRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.3rem;
+  }
+}
+

@@ -1,7 +1,8 @@
 import "./App.css";
+import AppRoot from "./app/App.jsx";
 
 function App() {
-  return <></>;
+  return <AppRoot />;
 }
 
 export default App;

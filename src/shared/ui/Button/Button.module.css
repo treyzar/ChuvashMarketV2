@@ -1,0 +1,45 @@
+ .button {
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: background-color 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease;
+}
+
+.primary {
+  background: linear-gradient(135deg, #3f769a, #3a5981);
+  color: #ffffff;
+  box-shadow: 0 6px 12px rgba(63, 118, 154, 0.25);
+}
+
+.secondary {
+  background-color: #ffffff;
+  color: #243f4b;
+  border: 1px solid #a5aaaf;
+}
+
+.ghost {
+  background-color: transparent;
+  color: #243f4b;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: default;
+  box-shadow: none;
+}
+
+.button:not(:disabled):active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 6px rgba(36, 63, 75, 0.35);
+}
+

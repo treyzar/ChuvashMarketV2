@@ -1,0 +1,89 @@
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 2.5rem;
+}
+
+.header {
+  margin-bottom: 1.25rem;
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #243f4b;
+}
+
+.subtitle {
+  margin-top: 0.35rem;
+  max-width: 32rem;
+  font-size: 0.95rem;
+  color: #778f9e;
+}
+
+.toolbar {
+  margin-bottom: 1rem;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.select {
+  min-width: 180px;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid #a5aaaf;
+  background-color: #ffffff;
+  font-size: 0.9rem;
+  color: #243f4b;
+}
+
+.hint {
+  font-size: 0.9rem;
+  color: #778f9e;
+  margin-bottom: 0.5rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.cardWrapper {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  box-shadow: 0 8px 18px rgba(36, 63, 75, 0.06);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.pageIndicator {
+  font-size: 0.9rem;
+  color: #778f9e;
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding-inline: 0.75rem;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
