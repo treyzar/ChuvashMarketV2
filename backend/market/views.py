@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.db import transaction
+from django.db import models, transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -88,6 +88,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     filterset_fields = ["seller", "is_published"]
     ordering_fields = ["price", "created_at"]
+    # Регистронезависимый поиск по имени и описанию (icontains)
     search_fields = ["name", "description"]
 
     def get_permissions(self):

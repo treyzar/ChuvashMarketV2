@@ -1,15 +1,27 @@
+import { useNavigate } from "react-router-dom";
 import { formatPrice } from "../../../shared/lib";
+import { ROUTES } from "../../../shared/constants";
 import styles from "./ProductCard.module.css";
 
 export const ProductCard = ({ product, footer }) => {
+  const navigate = useNavigate();
+
   if (!product) return null;
 
   const firstImage = product.images?.[0];
   const imageSrc =
     firstImage?.image_url || firstImage?.image || firstImage?.url || null;
 
+  const handleCardClick = (e) => {
+    // Не переходим, если клик был по кнопке или её дочерним элементам
+    if (e.target.closest('button')) {
+      return;
+    }
+    navigate(`${ROUTES.PRODUCTS}/${product.id}`);
+  };
+
   return (
-    <article className={styles.card}>
+    <article className={styles.card} onClick={handleCardClick} style={{ cursor: 'pointer' }}>
       <div className={styles.imageWrapper}>
         {imageSrc ? <img src={imageSrc} alt={product.name} /> : null}
       </div>

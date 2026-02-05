@@ -207,7 +207,7 @@ export const ProductDetailPage = () => {
               </div>
             </div>
 
-            <AddToCartButton product={product} className={styles.cartButton} />
+            <AddToCartButton product={product} quantity={quantity} className={styles.cartButton} />
           </div>
 
           {/* Особенности товара */}

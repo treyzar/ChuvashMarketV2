@@ -76,6 +76,21 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  const refreshCart = async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchCart();
+      if (data?.items) {
+        setItems(data.items);
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const cartCount = items.reduce((sum, item) => sum + (item.quantity ?? 0), 0);
   const total = items.reduce(
     (sum, item) => sum + (item.quantity ?? 0) * (item.product.price ?? 0),
@@ -92,6 +107,7 @@ export const CartProvider = ({ children }) => {
         addToCart,
         updateCartItem,
         removeCartItem,
+        refreshCart,
       }}
     >
       {children}

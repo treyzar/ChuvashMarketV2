@@ -105,12 +105,9 @@ export const SellerDashboardPage = () => {
     sales_last_30,
   } = data;
 
-  const avgDailyRevenue = useMemo(() => {
-    return (
-      sales_last_30.reduce((s, d) => s + (d.revenue || 0), 0) /
-      Math.max(1, sales_last_30.length)
-    );
-  }, [sales_last_30]);
+  const avgDailyRevenue =
+    sales_last_30.reduce((s, d) => s + (d.revenue || 0), 0) /
+    Math.max(1, sales_last_30.length);
 
   const completedOrders = orders_count - pending_orders;
   const completionRate =
@@ -118,10 +115,7 @@ export const SellerDashboardPage = () => {
       ? ((completedOrders / orders_count) * 100).toFixed(1)
       : "0.0";
 
-  const unitsSold = useMemo(
-    () => top_products.reduce((s, p) => s + (p.quantity || 0), 0),
-    [top_products],
-  );
+  const unitsSold = top_products.reduce((s, p) => s + (p.quantity || 0), 0);
   const avgOrderValue =
     completedOrders > 0 ? total_revenue / Math.max(1, completedOrders) : 0;
 

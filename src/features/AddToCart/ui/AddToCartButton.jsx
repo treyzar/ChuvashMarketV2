@@ -2,12 +2,12 @@ import { Button } from "../../../shared/ui";
 import { useCart } from "../../../shared/context/CartContext.jsx";
 import styles from "./AddToCartButton.module.css";
 
-export const AddToCartButton = ({ product }) => {
+export const AddToCartButton = ({ product, quantity = 1 }) => {
   const { addToCart, isLoading } = useCart();
 
   const handleClick = () => {
     if (!product) return;
-    addToCart(product, 1);
+    addToCart(product, quantity);
   };
 
   return (

@@ -37,7 +37,7 @@ export const CheckoutPage = () => {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { items, total, addToCart, removeCartItem } = useCart();
+  const { items, total, addToCart, removeCartItem, refreshCart } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -201,15 +201,15 @@ export const CheckoutPage = () => {
         delivery_method: form.deliveryMethod,
         delivery_address: form.address,
       });
+      
+      // Обновляем корзину после успешного создания заказа
+      await refreshCart();
+      
       setIsConfirmed(true);
       // clear draft on success
       try {
         localStorage.removeItem(DRAFT_KEY);
       } catch (e) {}
-      // После успешного оформления перенаправляем пользователя в "Мои заказы"
-      if (order?.id) {
-        navigate(ROUTES.ORDERS);
-      }
     } catch (err) {
       console.error("Ошибка при создании заказа:", err);
       setError(
@@ -244,197 +244,212 @@ export const CheckoutPage = () => {
           onClose={closeDraftToast}
         />
       )}
-      <ol className={styles.steps}>
-        {steps.map((s) => {
-          const isDone = step > s.id;
-          const isActive = step === s.id;
-          const classes = [styles.stepItem];
-          if (isActive) classes.push(styles.stepItemActive);
-          if (isDone)
-            classes.push(styles.stepItemDone, styles.stepItemClickable);
-
-          return (
-            <li
-              key={s.id}
-              className={classes.filter(Boolean).join(" ")}
-              onClick={isDone ? () => setStep(s.id) : undefined}
-              role={isDone ? "button" : undefined}
-              tabIndex={isDone ? 0 : -1}
-              onKeyDown={
-                isDone
-                  ? (e) => {
-                      if (e.key === "Enter" || e.key === " ") setStep(s.id);
-                    }
-                  : undefined
-              }
-            >
-              <span className={styles.stepIndex}>{s.id}</span>
-              <span>{s.label}</span>
-            </li>
-          );
-        })}
-      </ol>
-
-      <section className={styles.layout}>
-        <div className={styles.form}>
-          {step === 1 && (
-            <>
-              <label className={styles.field}>
-                <span>ФИО</span>
-                <input
-                  type="text"
-                  value={form.fullName}
-                  onChange={handleChange("fullName")}
-                  placeholder="Иван Иванов"
-                />
-                {errors.fullName && (
-                  <p className={styles.error}>{errors.fullName}</p>
-                )}
-              </label>
-              <label className={styles.field}>
-                <span>Телефон</span>
-                <input
-                  type="tel"
-                  value={form.phone}
-                  onChange={handleChange("phone")}
-                  placeholder="+7"
-                />
-                {errors.phone && <p className={styles.error}>{errors.phone}</p>}
-              </label>
-              <label className={styles.field}>
-                <span>Email</span>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={handleChange("email")}
-                  placeholder="you@example.com"
-                />
-                {errors.email && <p className={styles.error}>{errors.email}</p>}
-              </label>
-            </>
-          )}
-
-          {step === 2 && (
-            <>
-              <label className={styles.field}>
-                <span>Способ доставки</span>
-                <select
-                  value={form.deliveryMethod}
-                  onChange={handleChange("deliveryMethod")}
-                >
-                  <option value="pickup">Самовывоз</option>
-                  <option value="courier">Курьер по адресу</option>
-                  <option value="post">Доставка Почтой России</option>
-                </select>
-              </label>
-
-              <label className={styles.field}>
-                <span>Адрес доставки</span>
-                <textarea
-                  rows={3}
-                  value={form.address}
-                  onChange={handleChange("address")}
-                  placeholder="Город, улица, дом, подъезд…"
-                />
-                {errors.address && (
-                  <p className={styles.error}>{errors.address}</p>
-                )}
-              </label>
-            </>
-          )}
-
-          {step === 3 && (
-            <>
-              {error && <p style={{ color: "red" }}>{error}</p>}
-              <p className={styles.hint}>
-                Проверьте данные перед подтверждением заказа.
-              </p>
-              <label className={styles.field}>
-                <span>Комментарий к заказу (опционально)</span>
-                <textarea
-                  rows={3}
-                  value={form.comment}
-                  onChange={handleChange("comment")}
-                  placeholder="Например: позвонить за час до доставки"
-                />
-              </label>
-
-              {!isConfirmed && (
-                <Button
-                  fullWidth
-                  onClick={handleConfirm}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Создание заказа..." : "Подтвердить заказ"}
-                </Button>
-              )}
-
-              {isConfirmed && (
-                <div className={styles.success}>
-                  <h2>
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 8,
-                      }}
-                    >
-                      <Check size={18} /> Заказ оформлен!
-                    </span>
-                  </h2>
-                  <p>
-                    Спасибо за ваш заказ! Наша команда свяжется с вами по
-                    указанному номеру телефона.
-                  </p>
-                  <p style={{ fontSize: "0.9em", color: "#666" }}>
-                    Статус заказа можно отследить в разделе «Мои заказы».
-                  </p>
-                  <Button
-                    variant="secondary"
-                    fullWidth
-                    onClick={() => navigate(ROUTES.HOME)}
-                  >
-                    Вернуться на главную
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
-
-          <div className={styles.formFooter}>
-            {step > 1 && (
-              <Button variant="secondary" onClick={prevStep}>
-                Назад
-              </Button>
-            )}
-            {step < 3 && <Button onClick={nextStep}>Продолжить</Button>}
+      
+      {isConfirmed ? (
+        <div className={styles.successContainer}>
+          <div className={styles.successIcon}>
+            <Check size={48} strokeWidth={3} />
           </div>
-        </div>
-
-        <aside className={styles.sidebar}>
-          <div className={styles.summary}>
-            <h2>Ваш заказ</h2>
-            <ul className={styles.summaryList}>
-              {items.map((item) => (
-                <li key={item.id}>
-                  <span>
-                    {item.product.name} × {item.quantity}
-                  </span>
-                  <span>
-                    {formatPrice(
-                      (item.product.price ?? 0) * (item.quantity ?? 0),
-                    )}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <div className={styles.summaryRow}>
-              <span>Итого</span>
-              <span className={styles.summaryTotal}>{formatPrice(total)}</span>
+          <h2 className={styles.successTitle}>Заказ успешно оформлен!</h2>
+          <p className={styles.successMessage}>
+            Спасибо за ваш заказ! Мы получили вашу заявку и скоро свяжемся с вами по указанному номеру телефона.
+          </p>
+          <div className={styles.successDetails}>
+            <div className={styles.successDetailItem}>
+              <span className={styles.successDetailLabel}>Контактное лицо:</span>
+              <span className={styles.successDetailValue}>{form.fullName}</span>
+            </div>
+            <div className={styles.successDetailItem}>
+              <span className={styles.successDetailLabel}>Телефон:</span>
+              <span className={styles.successDetailValue}>{form.phone}</span>
+            </div>
+            <div className={styles.successDetailItem}>
+              <span className={styles.successDetailLabel}>Адрес доставки:</span>
+              <span className={styles.successDetailValue}>{form.address}</span>
             </div>
           </div>
-        </aside>
-      </section>
+          <p className={styles.successHint}>
+            Статус заказа можно отследить в разделе «Мои заказы»
+          </p>
+          <div className={styles.successActions}>
+            <Button
+              fullWidth
+              onClick={() => navigate(ROUTES.ORDERS)}
+            >
+              Перейти к моим заказам
+            </Button>
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => navigate(ROUTES.HOME)}
+            >
+              Вернуться на главную
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <ol className={styles.steps}>
+            {steps.map((s) => {
+              const isDone = step > s.id;
+              const isActive = step === s.id;
+              const classes = [styles.stepItem];
+              if (isActive) classes.push(styles.stepItemActive);
+              if (isDone)
+                classes.push(styles.stepItemDone, styles.stepItemClickable);
+
+              return (
+                <li
+                  key={s.id}
+                  className={classes.filter(Boolean).join(" ")}
+                  onClick={isDone ? () => setStep(s.id) : undefined}
+                  role={isDone ? "button" : undefined}
+                  tabIndex={isDone ? 0 : -1}
+                  onKeyDown={
+                    isDone
+                      ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") setStep(s.id);
+                        }
+                      : undefined
+                  }
+                >
+                  <span className={styles.stepIndex}>{s.id}</span>
+                  <span>{s.label}</span>
+                </li>
+              );
+            })}
+          </ol>
+
+          <section className={styles.layout}>
+            <div className={styles.form}>
+              {step === 1 && (
+                <>
+                  <label className={styles.field}>
+                    <span>ФИО</span>
+                    <input
+                      type="text"
+                      value={form.fullName}
+                      onChange={handleChange("fullName")}
+                      placeholder="Иван Иванов"
+                    />
+                    {errors.fullName && (
+                      <p className={styles.error}>{errors.fullName}</p>
+                    )}
+                  </label>
+                  <label className={styles.field}>
+                    <span>Телефон</span>
+                    <input
+                      type="tel"
+                      value={form.phone}
+                      onChange={handleChange("phone")}
+                      placeholder="+7"
+                    />
+                    {errors.phone && <p className={styles.error}>{errors.phone}</p>}
+                  </label>
+                  <label className={styles.field}>
+                    <span>Email</span>
+                    <input
+                      type="email"
+                      value={form.email}
+                      onChange={handleChange("email")}
+                      placeholder="you@example.com"
+                    />
+                    {errors.email && <p className={styles.error}>{errors.email}</p>}
+                  </label>
+                </>
+              )}
+
+              {step === 2 && (
+                <>
+                  <label className={styles.field}>
+                    <span>Способ доставки</span>
+                    <select
+                      value={form.deliveryMethod}
+                      onChange={handleChange("deliveryMethod")}
+                    >
+                      <option value="pickup">Самовывоз</option>
+                      <option value="courier">Курьер по адресу</option>
+                      <option value="post">Доставка Почтой России</option>
+                    </select>
+                  </label>
+
+                  <label className={styles.field}>
+                    <span>Адрес доставки</span>
+                    <textarea
+                      rows={3}
+                      value={form.address}
+                      onChange={handleChange("address")}
+                      placeholder="Город, улица, дом, подъезд…"
+                    />
+                    {errors.address && (
+                      <p className={styles.error}>{errors.address}</p>
+                    )}
+                  </label>
+                </>
+              )}
+
+              {step === 3 && (
+                <>
+                  {error && <p style={{ color: "red" }}>{error}</p>}
+                  <p className={styles.hint}>
+                    Проверьте данные перед подтверждением заказа.
+                  </p>
+                  <label className={styles.field}>
+                    <span>Комментарий к заказу (опционально)</span>
+                    <textarea
+                      rows={3}
+                      value={form.comment}
+                      onChange={handleChange("comment")}
+                      placeholder="Например: позвонить за час до доставки"
+                    />
+                  </label>
+
+                  <Button
+                    fullWidth
+                    onClick={handleConfirm}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Создание заказа..." : "Подтвердить заказ"}
+                  </Button>
+                </>
+              )}
+
+              <div className={styles.formFooter}>
+                {step > 1 && (
+                  <Button variant="secondary" onClick={prevStep}>
+                    Назад
+                  </Button>
+                )}
+                {step < 3 && <Button onClick={nextStep}>Продолжить</Button>}
+              </div>
+            </div>
+
+            <aside className={styles.sidebar}>
+              <div className={styles.summary}>
+                <h2>Ваш заказ</h2>
+                <ul className={styles.summaryList}>
+                  {items.map((item) => (
+                    <li key={item.id}>
+                      <span>
+                        {item.product.name} × {item.quantity}
+                      </span>
+                      <span>
+                        {formatPrice(
+                          (item.product.price ?? 0) * (item.quantity ?? 0),
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <div className={styles.summaryRow}>
+                  <span>Итого</span>
+                  <span className={styles.summaryTotal}>{formatPrice(total)}</span>
+                </div>
+              </div>
+            </aside>
+          </section>
+        </>
+      )}
     </main>
   );
 };
