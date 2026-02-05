@@ -62,6 +62,26 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         return profile
 
 
+class BecomeSellerView(generics.GenericAPIView):
+    """Позволяет обычному пользователю запросить или сразу стать продавцом."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        # При этом примере мы сразу изменяем роль на продавца.
+        # В реальной системе можно сохранять заявку на рассмотрение.
+        user.role = User.Roles.SELLER
+        user.save(update_fields=["role"])
+
+        profile, _ = Profile.objects.get_or_create(user=user)
+        profile.type = Profile.Types.SELLER
+        profile.save(update_fields=["type"])
+
+        serializer = UserSerializer(user, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -263,7 +283,19 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class JwtLoginView(TokenObtainPairView):
-    """Получение JWT токена: /api/auth/login/"""
+    """Получение JWT токена с данными пользователя: /api/auth/login/"""
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        # Добавляем данные пользователя в ответ
+        if response.status_code == 200 and "access" in response.data:
+            try:
+                user = User.objects.get(username=request.data.get("username"))
+                user_serializer = UserSerializer(user)
+                response.data["user"] = user_serializer.data
+            except User.DoesNotExist:
+                pass
+        return response
 
 
 class JwtRefreshView(TokenRefreshView):

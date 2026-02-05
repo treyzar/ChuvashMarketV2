@@ -35,7 +35,7 @@ class ImageSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     images = ImageSerializer(many=True, read_only=True)
-    seller_name = serializers.CharField(source="seller.username", read_only=True)
+    category_name = serializers.CharField(source="category.name", read_only=True)
 
     class Meta:
         model = Product
@@ -45,8 +45,8 @@ class ProductSerializer(serializers.ModelSerializer):
             "description",
             "price",
             "category",
+            "category_name",
             "seller",
-            "seller_name",
             "created_at",
             "updated_at",
             "is_published",

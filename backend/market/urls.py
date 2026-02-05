@@ -7,6 +7,7 @@ from .views import (
     CartViewSet,
     CategoryViewSet,
     CurrentUserView,
+    BecomeSellerView,
     JwtLoginView,
     JwtRefreshView,
     OrderViewSet,
@@ -32,6 +33,7 @@ router.register(r"admin/orders", AdminOrderViewSet, basename="admin-orders")
 auth_patterns = [
     path("register/", RegisterView.as_view(), name="register"),
     path("login/", JwtLoginView.as_view(), name="login"),
+    path("become-seller/", BecomeSellerView.as_view(), name="become_seller"),
     path("refresh/", JwtRefreshView.as_view(), name="token_refresh"),
     path("user/", CurrentUserView.as_view(), name="current_user"),
 ]
