@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 
-from .models import Cart, CartItem, Category, Image, Order, OrderItem, Product, Profile, Review
+from .models import Cart, CartItem, Image, Order, OrderItem, Product, Profile, Review
 
 User = get_user_model()
 
@@ -19,12 +19,6 @@ class ProfileAdmin(admin.ModelAdmin):
     search_fields = ("user__username", "phone")
 
 
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "slug", "parent")
-    prepopulated_fields = {"slug": ("name",)}
-
-
 class ImageInline(admin.TabularInline):
     model = Image
     extra = 1
@@ -32,8 +26,8 @@ class ImageInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "seller", "category", "price", "is_published", "created_at")
-    list_filter = ("is_published", "category")
+    list_display = ("id", "name", "seller", "price", "is_published", "created_at")
+    list_filter = ("is_published",)
     search_fields = ("name", "seller__username")
     inlines = [ImageInline]
 

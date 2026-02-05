@@ -47,37 +47,11 @@ class Profile(models.Model):
         return f"Профиль {self.user}"
 
 
-class Category(models.Model):
-    name = models.CharField(max_length=255, verbose_name="название")
-    slug = models.SlugField(max_length=255, unique=True, verbose_name="slug")
-    parent = models.ForeignKey(
-        "self",
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="children",
-        verbose_name="родительская категория",
-    )
-
-    class Meta:
-        verbose_name = "категория"
-        verbose_name_plural = "категории"
-
-    def __str__(self) -> str:
-        return self.name
-
-
 class Product(models.Model):
     name = models.CharField(max_length=255, verbose_name="название")
     description = models.TextField(blank=True, verbose_name="описание")
     price = models.DecimalField(
         max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], verbose_name="цена"
-    )
-    category = models.ForeignKey(
-        Category,
-        related_name="products",
-        on_delete=models.PROTECT,
-        verbose_name="категория",
     )
     seller = models.ForeignKey(
         User,

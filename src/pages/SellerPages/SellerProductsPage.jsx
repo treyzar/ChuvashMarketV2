@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { ITEMS_PER_PAGE } from "../../shared/constants";
 import { Button } from "../../shared/ui";
 import {
   fetchSellerProducts,
   deleteSellerProduct,
 } from "../../shared/api/seller";
 import { formatPrice } from "../../shared/lib";
+import { CheckCircle, Circle } from "lucide-react";
 import styles from "./SellerPages.module.css";
+import { useAuth } from "../../shared/context/AuthContext.jsx";
 
 const AddProductModal = ({ onClose, onSave }) => {
   const [form, setForm] = useState({
@@ -179,17 +183,37 @@ const AddProductModal = ({ onClose, onSave }) => {
 
 export const SellerProductsPage = () => {
   const [products, setProducts] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const { isAuthenticated, user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = Number(searchParams.get("page") || "1");
+
+  if (!isAuthenticated || user?.role !== "seller") {
+    return (
+      <main className={styles.page}>
+        <h1 className={styles.title}>Мои товары</h1>
+        <section className={styles.card}>
+          <p className={styles.hint}>
+            Доступно только для продавцов. Войдите в аккаунт или запросите
+            статус продавца.
+          </p>
+        </section>
+      </main>
+    );
+  }
 
   const loadProducts = () => {
     setIsLoading(true);
-    fetchSellerProducts()
+    fetchSellerProducts({ page, page_size: ITEMS_PER_PAGE })
       .then((data) => {
-        if (Array.isArray(data)) {
-          setProducts(data);
-        } else if (Array.isArray(data?.results)) {
+        if (data && typeof data === "object" && Array.isArray(data.results)) {
           setProducts(data.results);
+          setTotalCount(Number(data.count) || 0);
+        } else if (Array.isArray(data)) {
+          setProducts(data);
+          setTotalCount(data.length || 0);
         }
       })
       .catch((err) => console.error("Ошибка загрузки товаров:", err))
@@ -199,6 +223,11 @@ export const SellerProductsPage = () => {
   useEffect(() => {
     loadProducts();
   }, []);
+
+  useEffect(() => {
+    loadProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   const handleDelete = async (productId) => {
     if (!window.confirm("Вы уверены?")) return;
@@ -257,7 +286,27 @@ export const SellerProductsPage = () => {
                 <div style={{ textAlign: "right", marginRight: "1rem" }}>
                   <div>{formatPrice(product.price ?? 0)}</div>
                   <div className={styles.badge}>
-                    {product.is_published ? "✓ Опубликован" : "○ Черновик"}
+                    {product.is_published ? (
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                      >
+                        <CheckCircle size={16} /> <span>Опубликован</span>
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                      >
+                        <Circle size={14} /> <span>Черновик</span>
+                      </span>
+                    )}
                   </div>
                 </div>
                 <button
@@ -279,7 +328,74 @@ export const SellerProductsPage = () => {
           </ul>
         )}
       </section>
-
+      {products.length > 0 && (
+        <div className={styles.pagination}>
+          <Button
+            variant="secondary"
+            disabled={page <= 1}
+            onClick={() =>
+              setSearchParams((p) => {
+                const np = new URLSearchParams(p);
+                np.set("page", String(page - 1));
+                return np;
+              })
+            }
+          >
+            Назад
+          </Button>
+          {totalCount > 0 &&
+            (() => {
+              const totalPages = Math.max(
+                1,
+                Math.ceil(totalCount / ITEMS_PER_PAGE),
+              );
+              if (totalPages <= 10) {
+                return (
+                  <div className={styles.pageNumbers}>
+                    {Array.from({ length: totalPages }).map((_, idx) => {
+                      const p = idx + 1;
+                      return (
+                        <Button
+                          key={p}
+                          variant={p === page ? "secondary" : "ghost"}
+                          onClick={() =>
+                            setSearchParams((pms) => {
+                              const np = new URLSearchParams(pms);
+                              np.set("page", String(p));
+                              return np;
+                            })
+                          }
+                        >
+                          {p}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                );
+              }
+              return (
+                <span className={styles.pageIndicator}>
+                  Страница {page} из {totalPages}
+                </span>
+              );
+            })()}
+          <Button
+            variant="secondary"
+            disabled={
+              totalCount > 0 && page >= Math.ceil(totalCount / ITEMS_PER_PAGE)
+            }
+            onClick={() =>
+              setSearchParams((p) => {
+                const np = new URLSearchParams(p);
+                np.set("page", String(page + 1));
+                return np;
+              })
+            }
+          >
+            Вперёд
+          </Button>
+        </div>
+      )}
       {showModal && (
         <AddProductModal
           onClose={() => setShowModal(false)}

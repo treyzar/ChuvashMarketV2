@@ -2,13 +2,17 @@ import { NavLink } from "react-router-dom";
 import { Button } from "../../../shared/ui";
 import { ROUTES } from "../../../shared/constants";
 import styles from "./Header.module.css";
+import { ShoppingCart } from "lucide-react";
+import { useAuth } from "../../../shared/context/AuthContext.jsx";
 
 const navLinkClass = ({ isActive }) =>
   [styles.navLink, isActive ? styles.navLinkActive : ""]
     .filter(Boolean)
     .join(" ");
 
-export const Header = ({ cartCount = 0, isAuthenticated = false }) => {
+export const Header = ({ cartCount = 0 }) => {
+  const { isAuthenticated, user } = useAuth();
+
   return (
     <header className={styles.root}>
       <div className={styles.inner}>
@@ -27,15 +31,26 @@ export const Header = ({ cartCount = 0, isAuthenticated = false }) => {
           <NavLink to={ROUTES.PRODUCTS} className={navLinkClass}>
             Каталог
           </NavLink>
-          <NavLink to={ROUTES.SELLER_DASHBOARD} className={navLinkClass}>
-            Продавцам
-          </NavLink>
+          {isAuthenticated && (
+            <NavLink to={ROUTES.ORDERS} className={navLinkClass}>
+              Мои заказы
+            </NavLink>
+          )}
+          {user?.role === "seller" && (
+            <NavLink to={ROUTES.SELLER_DASHBOARD} className={navLinkClass}>
+              Продавцам
+            </NavLink>
+          )}
         </nav>
 
         <div className={styles.right}>
           <NavLink to={ROUTES.CART} className={styles.cartButton}>
             <Button variant="secondary">
-              Корзина
+              <span
+                style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+              >
+                <ShoppingCart size={16} /> Корзина
+              </span>
             </Button>
             {cartCount > 0 && (
               <span className={styles.cartBadge}>{cartCount}</span>
@@ -56,4 +71,3 @@ export const Header = ({ cartCount = 0, isAuthenticated = false }) => {
     </header>
   );
 };
-

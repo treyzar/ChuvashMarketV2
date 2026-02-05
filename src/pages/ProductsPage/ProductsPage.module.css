@@ -51,6 +51,7 @@
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  align-items: stretch;
 }
 
 .cardWrapper {
@@ -61,6 +62,7 @@
   flex-direction: column;
   gap: 0.5rem;
   box-shadow: 0 8px 18px rgba(36, 63, 75, 0.06);
+  height: 100%;
 }
 
 .pagination {
@@ -86,4 +88,3 @@
     align-items: stretch;
   }
 }
-

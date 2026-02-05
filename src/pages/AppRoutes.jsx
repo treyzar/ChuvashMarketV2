@@ -10,6 +10,7 @@ import { LoginPage } from "./AuthPages/LoginPage.jsx";
 import { RegisterPage } from "./AuthPages/RegisterPage.jsx";
 import { ProfilePage } from "./AccountPages/ProfilePage.jsx";
 import { OrdersPage } from "./AccountPages/OrdersPage.jsx";
+import { OrderDetailPage } from "./AccountPages/OrderDetailPage.jsx";
 import { FavoritesPage } from "./AccountPages/FavoritesPage.jsx";
 import { SellerDashboardPage } from "./SellerPages/SellerDashboardPage.jsx";
 import { SellerProductsPage } from "./SellerPages/SellerProductsPage.jsx";
@@ -30,7 +31,7 @@ export const AppRoutes = () => {
 
   return (
     <BrowserRouter>
-      <Header cartCount={cartCount} isAuthenticated={isAuthenticated} />
+      <Header cartCount={cartCount} />
       <Routes>
         <Route path={ROUTES.HOME} element={<HomePage />} />
         <Route path={ROUTES.PRODUCTS} element={<ProductsPage />} />
@@ -39,11 +40,18 @@ export const AppRoutes = () => {
         <Route path={ROUTES.CHECKOUT} element={<CheckoutPage />} />
         <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
         <Route path={ROUTES.ORDERS} element={<OrdersPage />} />
+        <Route path={ROUTES.ORDER_DETAIL} element={<OrderDetailPage />} />
         <Route path={ROUTES.FAVORITES} element={<FavoritesPage />} />
-        <Route path={ROUTES.SELLER_DASHBOARD} element={<SellerDashboardPage />} />
+        <Route
+          path={ROUTES.SELLER_DASHBOARD}
+          element={<SellerDashboardPage />}
+        />
         <Route path={ROUTES.SELLER_PRODUCTS} element={<SellerProductsPage />} />
         <Route path={ROUTES.SELLER_ORDERS} element={<SellerOrdersPage />} />
-        <Route path={ROUTES.ADMIN_DASHBOARD} element={<Placeholder title="Административная панель" />} />
+        <Route
+          path={ROUTES.ADMIN_DASHBOARD}
+          element={<Placeholder title="Административная панель" />}
+        />
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
         <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
         <Route
@@ -54,4 +62,3 @@ export const AppRoutes = () => {
     </BrowserRouter>
   );
 };
-

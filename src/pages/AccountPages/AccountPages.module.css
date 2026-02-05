@@ -62,7 +62,7 @@
 
 .listRow {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) auto auto;
+  grid-template-columns: minmax(0, 2.2fr) auto auto;
   gap: 0.75rem;
   align-items: center;
   font-size: 0.9rem;
@@ -79,6 +79,59 @@
 .hint {
   font-size: 0.9rem;
   color: #778f9e;
+}
+
+.error {
+  margin-top: -0.2rem;
+  font-size: 0.8rem;
+  color: #d93025;
+}
+
+.orderPreview {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.orderPreviewImage {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orderPreviewImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.orderPreviewInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.orderMeta {
+  font-size: 0.8rem;
+  color: #778f9e;
+}
+
+.orderItemName {
+  font-size: 0.9rem;
+}
+
+.orderTotal {
+  font-weight: 600;
+  text-align: right;
+}
+
+.orderActions {
+  text-align: right;
 }
 
 @media (max-width: 768px) {

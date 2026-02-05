@@ -6,12 +6,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import Cart, CartItem, Category, Order, OrderItem, Product, Profile, Review
+from .models import Cart, CartItem, Image, Order, OrderItem, Product, Profile, Review
 from .permissions import IsAdmin, IsOwnerOrReadOnly, IsSeller
 from .serializers import (
     CartItemSerializer,
     CartSerializer,
-    CategorySerializer,
+    ImageSerializer,
     OrderSerializer,
     ProductSerializer,
     ProfileSerializer,
@@ -82,16 +82,11 @@ class BecomeSellerView(generics.GenericAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    permission_classes = [permissions.AllowAny]
-
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.filter(is_published=True).select_related("category", "seller")
+    queryset = Product.objects.filter(is_published=True).select_related("seller")
     serializer_class = ProductSerializer
-    filterset_fields = ["category", "seller", "is_published"]
+    filterset_fields = ["seller", "is_published"]
     ordering_fields = ["price", "created_at"]
     search_fields = ["name", "description"]
 
@@ -109,6 +104,29 @@ class ProductViewSet(viewsets.ModelViewSet):
                 # продавец видит только свои товары при управлении
                 if self.action != "list":
                     return Product.objects.filter(seller=self.request.user)
+        return qs
+
+
+class ImageViewSet(viewsets.ModelViewSet):
+    """
+    Управление изображениями товаров: /api/images/
+
+    - GET /api/images/?product_id=1 — список изображений товара
+    - POST /api/images/ { "product": 1, "image": <файл> } — добавить изображение
+
+    В этом проекте изображения — это файловое поле ImageField, путь хранится
+    в виде относительного значения "products/filename.jpg", а полный URL
+    фронтенд получает через поле image_url сериализатора.
+    """
+
+    serializer_class = ImageSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        qs = Image.objects.all().select_related("product")
+        product_id = self.request.query_params.get("product_id")
+        if product_id:
+            qs = qs.filter(product_id=product_id)
         return qs
 
 
@@ -189,6 +207,42 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Order.objects.filter(buyer=self.request.user).prefetch_related("items__product")
 
+    @action(detail=False, methods=["get"], url_path="my")
+    def my_orders(self, request, *args, **kwargs):
+        """
+        Явный alias для списка заказов текущего пользователя: /api/orders/my/
+        """
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=["put"], url_path="status")
+    def update_status(self, request, *args, **kwargs):
+        """
+        Обновление статуса заказа.
+        Покупатель может, например, отменить заказ или подтвердить получение.
+        """
+        order = self.get_object()
+        new_status = request.data.get("status")
+
+        if new_status not in Order.Status.values:
+            return Response(
+                {"detail": "Недопустимый статус заказа."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Для простоты разрешаем покупателю менять только свои заказы
+        if order.buyer != request.user:
+            return Response(
+                {"detail": "Вы не можете изменять этот заказ."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        order.status = new_status
+        order.save(update_fields=["status"])
+        serializer = self.get_serializer(order)
+        return Response(serializer.data)
+
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         cart = _get_or_create_cart(request)
@@ -233,7 +287,7 @@ class SellerProductViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsSeller]
 
     def get_queryset(self):
-        return Product.objects.filter(seller=self.request.user).select_related("category", "seller")
+        return Product.objects.filter(seller=self.request.user).select_related("seller")
 
     def perform_create(self, serializer):
         serializer.save(seller=self.request.user)
@@ -300,4 +354,197 @@ class JwtLoginView(TokenObtainPairView):
 
 class JwtRefreshView(TokenRefreshView):
     """Обновление JWT токена: /api/auth/refresh/"""
+
+
+class SellerAnalyticsView(generics.GenericAPIView):
+    """Метрики и аналитика для продавца: /api/sellers/analytics/"""
+
+    permission_classes = [permissions.IsAuthenticated, IsSeller]
+
+    def get(self, request, *args, **kwargs):
+        seller = request.user
+
+        # Базовые метрики
+        products_qs = Product.objects.filter(seller=seller)
+        products_count = products_qs.count()
+        published_count = products_qs.filter(is_published=True).count()
+        draft_count = products_count - published_count
+
+        # Заказы, содержащие товары этого продавца
+        orders_qs = (
+            Order.objects.filter(items__seller=seller)
+            .distinct()
+            .prefetch_related("items__product")
+        )
+        orders_count = orders_qs.count()
+        pending_orders = orders_qs.filter(status=Order.Status.PENDING).count()
+
+        # Общая выручка и продажи по товарам
+        from django.db.models import Sum, F, FloatField, ExpressionWrapper, Count
+        from django.db.models.functions import TruncDate
+        from datetime import timedelta
+        from django.utils import timezone
+
+        revenue_expr = ExpressionWrapper(F("price") * F("quantity"), output_field=FloatField())
+
+        total_revenue = (
+            OrderItem.objects.filter(seller=seller)
+            .aggregate(total=Sum(revenue_expr))
+            .get("total")
+            or 0
+        )
+
+        # Топ товаров по продажам
+        top_products_qs = (
+            OrderItem.objects.filter(seller=seller)
+            .values("product__id", "product__name")
+            .annotate(qty=Sum("quantity"), revenue=Sum(revenue_expr))
+            .order_by("-revenue")[:10]
+        )
+        top_products = [
+            {"id": p["product__id"], "name": p["product__name"], "quantity": p["qty"], "revenue": p["revenue"]}
+            for p in top_products_qs
+        ]
+
+        # Данные по дням за последние 30 дней
+        today = timezone.now().date()
+        since = today - timedelta(days=29)
+
+        daily = (
+            OrderItem.objects.filter(seller=seller, order__created_at__date__gte=since)
+            .annotate(date=TruncDate("order__created_at"))
+            .values("date")
+            .annotate(revenue=Sum(revenue_expr), orders=Count("order", distinct=True))
+            .order_by("date")
+        )
+
+        sales_last_30 = [
+            {"date": d["date"].isoformat(), "revenue": d.get("revenue") or 0, "orders": d.get("orders") or 0}
+            for d in daily
+        ]
+
+        # Отзывы и рейтинги
+        reviews_qs = Review.objects.filter(product__seller=seller)
+        reviews_count = reviews_qs.count()
+        avg_rating = reviews_qs.aggregate(avg=models.Avg("rating")).get("avg") or 0
+
+        # Уникальные покупатели
+        unique_buyers = (
+            Order.objects.filter(items__seller=seller)
+            .distinct()
+            .values("buyer")
+            .count()
+        )
+
+        # Статус заказов
+        order_statuses = {
+            "completed": orders_qs.filter(status=Order.Status.COMPLETED).count(),
+            "shipped": orders_qs.filter(status=Order.Status.SHIPPED).count(),
+            "paid": orders_qs.filter(status=Order.Status.PAID).count(),
+            "pending": pending_orders,
+            "canceled": orders_qs.filter(status=Order.Status.CANCELED).count(),
+        }
+
+        # Продажи по статусу (доход)
+        revenue_by_status = {}
+        for status, label in Order.Status.choices:
+            status_revenue = (
+                OrderItem.objects.filter(seller=seller, order__status=status)
+                .aggregate(total=Sum(revenue_expr))
+                .get("total") or 0
+            )
+            revenue_by_status[status] = float(status_revenue)
+
+        # Категории товаров (количество товаров по статусу публикации)
+        published_by_status = [
+            {"status": "Опубликованы", "count": published_count},
+            {"status": "Черновики", "count": draft_count},
+        ]
+
+        # Средняя цена товара
+        avg_product_price = (
+            products_qs.aggregate(avg=models.Avg("price")).get("avg") or 0
+        )
+
+        # Минимальная и максимальная цена
+        min_product_price = (
+            products_qs.aggregate(min=models.Min("price")).get("min") or 0
+        )
+        max_product_price = (
+            products_qs.aggregate(max=models.Max("price")).get("max") or 0
+        )
+
+        # Общая единиц товара (во всех заказах)
+        total_units_sold = (
+            OrderItem.objects.filter(seller=seller)
+            .aggregate(total=Sum("quantity"))
+            .get("total") or 0
+        )
+
+        # Средний размер заказа (в единицах)
+        avg_order_size = total_units_sold / max(1, orders_count) if orders_count > 0 else 0
+
+        # Категория: товары с наихудшим рейтингом
+        worst_products = (
+            Review.objects.filter(product__seller=seller)
+            .values("product__id", "product__name")
+            .annotate(avg_rating=models.Avg("rating"))
+            .order_by("avg_rating")[:5]
+        )
+        worst_products_list = [
+            {"id": p["product__id"], "name": p["product__name"], "rating": float(p["avg_rating"] or 0)}
+            for p in worst_products
+        ]
+
+        # Категория: товары с лучшим рейтингом
+        best_products = (
+            Review.objects.filter(product__seller=seller)
+            .values("product__id", "product__name")
+            .annotate(avg_rating=models.Avg("rating"))
+            .order_by("-avg_rating")[:5]
+        )
+        best_products_list = [
+            {"id": p["product__id"], "name": p["product__name"], "rating": float(p["avg_rating"] or 0)}
+            for p in best_products
+        ]
+
+        # Распределение цен (ценовые диапазоны)
+        price_ranges = {
+            "бюджет": products_qs.filter(price__lt=1000).count(),
+            "средний": products_qs.filter(price__gte=1000, price__lt=5000).count(),
+            "премиум": products_qs.filter(price__gte=5000, price__lt=20000).count(),
+            "люкс": products_qs.filter(price__gte=20000).count(),
+        }
+
+        data = {
+            # Основные метрики
+            "products_count": products_count,
+            "published_count": published_count,
+            "draft_count": draft_count,
+            "orders_count": orders_count,
+            "pending_orders": pending_orders,
+            "total_revenue": float(total_revenue),
+            "unique_buyers": unique_buyers,
+            "reviews_count": reviews_count,
+            "avg_rating": float(avg_rating),
+
+            # Детальные данные
+            "total_units_sold": total_units_sold,
+            "avg_order_size": float(avg_order_size),
+            "avg_product_price": float(avg_product_price),
+            "min_product_price": float(min_product_price),
+            "max_product_price": float(max_product_price),
+
+            # Графики
+            "top_products": top_products,
+            "sales_last_30": sales_last_30,
+            "order_statuses": order_statuses,
+            "revenue_by_status": revenue_by_status,
+            "published_by_status": published_by_status,
+            "worst_products": worst_products_list,
+            "best_products": best_products_list,
+            "price_ranges": price_ranges,
+        }
+
+        return Response(data)
 

@@ -11,10 +11,6 @@ export const fetchProductById = (id) => {
   return apiClient(`${API_ENDPOINTS.PRODUCTS}${id}/`);
 };
 
-export const fetchCategories = () => {
-  return apiClient("/api/categories/");
-};
-
 export const createProduct = (data) => {
   return apiClient(API_ENDPOINTS.PRODUCTS, {
     method: "POST",

@@ -3,11 +3,13 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { ProductCard } from "../../entities";
 import { AddToCartButton } from "../../features";
 import { fetchProducts } from "../../shared/api/products";
+import { ITEMS_PER_PAGE } from "../../shared/constants";
 import { Button } from "../../shared/ui";
 import styles from "./ProductsPage.module.css";
 
 export const ProductsPage = () => {
   const [products, setProducts] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -15,7 +17,6 @@ export const ProductsPage = () => {
 
   const page = Number(searchParams.get("page") || "1");
   const ordering = searchParams.get("ordering") || "-created_at";
-  const category = searchParams.get("category") || "";
   const search = searchParams.get("search") || "";
 
   useEffect(() => {
@@ -25,18 +26,19 @@ export const ProductsPage = () => {
     const params = {
       page,
       ordering,
-      limit: 12,
+      page_size: ITEMS_PER_PAGE,
     };
 
-    if (category) params.category = category;
     if (search) params.search = search;
 
     fetchProducts(params)
       .then((data) => {
-        if (Array.isArray(data?.results)) {
+        if (data && typeof data === "object" && Array.isArray(data.results)) {
           setProducts(data.results);
+          setTotalCount(Number(data.count) || 0);
         } else if (Array.isArray(data)) {
           setProducts(data);
+          setTotalCount(data.length || 0);
         }
       })
       .catch((err) => {
@@ -45,7 +47,7 @@ export const ProductsPage = () => {
         setProducts([]);
       })
       .finally(() => setIsLoading(false));
-  }, [page, ordering, category, search]);
+  }, [page, ordering, search]);
 
   const handleFilterChange = (next) => {
     const nextParams = new URLSearchParams(searchParams);
@@ -84,20 +86,6 @@ export const ProductsPage = () => {
 
       <section className={styles.toolbar}>
         <div className={styles.filters}>
-          <select
-            className={styles.select}
-            value={category}
-            onChange={(e) =>
-              handleFilterChange({ category: e.target.value || null })
-            }
-          >
-            <option value="">Все категории</option>
-            <option value="food">Еда и фермерские продукты</option>
-            <option value="clothes">Одежда и аксессуары</option>
-            <option value="home">Дом и интерьер</option>
-            <option value="souvenirs">Сувениры и подарки</option>
-          </select>
-
           <select
             className={styles.select}
             value={ordering}
@@ -154,9 +142,41 @@ export const ProductsPage = () => {
             >
               Назад
             </Button>
-            <span className={styles.pageIndicator}>Страница {page}</span>
+            {totalCount > 0 &&
+              (() => {
+                const totalPages = Math.max(
+                  1,
+                  Math.ceil(totalCount / ITEMS_PER_PAGE),
+                );
+                if (totalPages <= 10) {
+                  return (
+                    <div className={styles.pageNumbers}>
+                      {Array.from({ length: totalPages }).map((_, idx) => {
+                        const p = idx + 1;
+                        return (
+                          <Button
+                            key={p}
+                            variant={p === page ? "secondary" : "ghost"}
+                            onClick={() => handlePageChange(p)}
+                          >
+                            {p}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  );
+                }
+                return (
+                  <span className={styles.pageIndicator}>
+                    Страница {page} из {totalPages}
+                  </span>
+                );
+              })()}
             <Button
               variant="secondary"
+              disabled={
+                totalCount > 0 && page >= Math.ceil(totalCount / ITEMS_PER_PAGE)
+              }
               onClick={() => handlePageChange(page + 1)}
             >
               Вперёд

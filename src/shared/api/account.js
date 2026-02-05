@@ -9,9 +9,13 @@ export const updateProfile = (payload) =>
     body: JSON.stringify(payload),
   });
 
-export const fetchOrders = () => apiClient(API_ENDPOINTS.ORDERS);
+export const fetchOrders = (params = {}) => {
+  const search = new URLSearchParams(params).toString();
+  const query = search ? `?${search}` : "";
+  return apiClient(`${API_ENDPOINTS.ORDERS}${query}`);
+};
 
-export const fetchOrderById = (id) => 
+export const fetchOrderById = (id) =>
   apiClient(`${API_ENDPOINTS.ORDERS}${id}/`);
 
 export const createOrder = (data) =>

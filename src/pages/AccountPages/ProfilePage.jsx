@@ -10,6 +10,10 @@ export const ProfilePage = () => {
     phone: "",
     address: "",
   });
+  const [errors, setErrors] = useState({
+    phone: "",
+    address: "",
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -26,14 +30,64 @@ export const ProfilePage = () => {
       .finally(() => setIsLoading(false));
   }, []);
 
+  const normalizePhone = (raw) => {
+    const digits = raw.replace(/\D/g, "");
+    if (!digits) return "";
+
+    let normalized = digits;
+
+    if (normalized[0] === "8") {
+      normalized = "7" + normalized.slice(1);
+    }
+
+    if (normalized[0] !== "7") {
+      normalized = "7" + normalized;
+    }
+
+    // максимум 11 цифр: 7XXXXXXXXXX
+    normalized = normalized.slice(0, 11);
+
+    return `+${normalized}`;
+  };
+
+  const isValidPhone = (value) => /^\+7\d{10}$/.test(value);
+
   const handleChange = (field) => (event) => {
-    setForm((prev) => ({ ...prev, [field]: event.target.value }));
+    const value = event.target.value;
+
+    setForm((prev) => ({
+      ...prev,
+      [field]: field === "phone" ? normalizePhone(value) : value,
+    }));
+
+    // Сбрасываем ошибку поля при изменении
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setIsLoading(true);
     setMessage("");
+
+    const validationErrors = {};
+
+    if (!form.phone) {
+      validationErrors.phone = "Укажите номер телефона";
+    } else if (!isValidPhone(form.phone)) {
+      validationErrors.phone = "Неверный формат. Используйте формат +7XXXXXXXXXX";
+    }
+
+    if (!form.address.trim()) {
+      validationErrors.address = "Укажите адрес";
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setIsLoading(true);
     try {
       await updateProfile(form);
       setMessage("Профиль обновлён.");
@@ -77,6 +131,7 @@ export const ProfilePage = () => {
               placeholder="+7"
             />
           </label>
+          {errors.phone && <p className={styles.error}>{errors.phone}</p>}
           <label className={styles.field}>
             <span>Адрес</span>
             <textarea
@@ -86,6 +141,7 @@ export const ProfilePage = () => {
               placeholder="Город, улица, дом…"
             />
           </label>
+          {errors.address && <p className={styles.error}>{errors.address}</p>}
           {message && <p className={styles.hint}>{message}</p>}
           <Button type="submit" disabled={isLoading}>
             {isLoading ? "Сохраняем..." : "Сохранить"}

@@ -1,7 +1,8 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import Cart, CartItem, Category, Image, Order, OrderItem, Product, Profile, Review
+from .models import Cart, CartItem, Image, Order, OrderItem, Product, Profile, Review
 
 User = get_user_model()
 
@@ -20,22 +21,70 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = ["user", "phone", "address", "type"]
 
+    def validate_phone(self, value: str) -> str:
+        """
+        Номер телефона в профиле приводим к формату +7XXXXXXXXXX и проверяем длину.
+        Поле остаётся опциональным.
+        """
+        if not value:
+            return value
 
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = ["id", "name", "slug", "parent"]
+        digits = "".join(ch for ch in value if ch.isdigit())
+        if not digits:
+            raise serializers.ValidationError("Укажите корректный номер телефона.")
+
+        if digits[0] == "8":
+            digits = "7" + digits[1:]
+        if digits[0] != "7":
+            digits = "7" + digits
+
+        digits = digits[:11]
+        if len(digits) != 11:
+            raise serializers.ValidationError("Номер телефона должен содержать 11 цифр.")
+
+        return f"+{digits}"
+
 
 
 class ImageSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор изображений товаров.
+
+    - image: относительный путь в БД, например "products/image.png"
+    - image_url: полный URL для фронтенда, например "/media/products/image.png"
+    """
+
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Image
-        fields = ["id", "image"]
+        fields = ["id", "product", "image", "image_url"]
+
+    def get_image_url(self, obj) -> str:
+        """
+        Строим URL вручную и подчищаем возможные хвосты (\n, пробелы) в имени файла.
+        Это защищает от путей вида "products/image.png\\n", которые дают %0A в URL.
+        """
+        request = self.context.get("request")
+        name = (obj.image.name or "").strip()
+        if not name:
+            return ""
+
+        # Если в БД руками записали "media/products/...", убираем префикс "media/"
+        cleaned = name.lstrip("/")
+        if cleaned.startswith("media/"):
+            cleaned = cleaned[len("media/") :]
+
+        # "/media/products/image.png"
+        url = f"{settings.MEDIA_URL.rstrip('/')}/{cleaned}"
+
+        if request is not None:
+            return request.build_absolute_uri(url)
+        return url
 
 
 class ProductSerializer(serializers.ModelSerializer):
     images = ImageSerializer(many=True, read_only=True)
-    category_name = serializers.CharField(source="category.name", read_only=True)
 
     class Meta:
         model = Product
@@ -44,8 +93,6 @@ class ProductSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "price",
-            "category",
-            "category_name",
             "seller",
             "created_at",
             "updated_at",
@@ -88,11 +135,35 @@ class CartSerializer(serializers.ModelSerializer):
 class OrderItemSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
     subtotal = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    product_image = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderItem
-        fields = ["id", "product", "seller", "quantity", "price", "subtotal"]
-        read_only_fields = ["id", "seller", "price", "subtotal"]
+        fields = ["id", "product", "seller", "quantity", "price", "subtotal", "product_image"]
+        read_only_fields = ["id", "seller", "price", "subtotal", "product_image"]
+
+    def get_product_image(self, obj) -> str:
+        """
+        Превью‑картинка товара в заказе — первая картинка продукта.
+        """
+        first_image = obj.product.images.first()
+        if not first_image:
+            return ""
+
+        request = self.context.get("request")
+        name = (first_image.image.name or "").strip()
+        if not name:
+            return ""
+
+        cleaned = name.lstrip("/")
+        if cleaned.startswith("media/"):
+            cleaned = cleaned[len("media/") :]
+
+        url = f"{settings.MEDIA_URL.rstrip('/')}/{cleaned}"
+
+        if request is not None:
+            return request.build_absolute_uri(url)
+        return url
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -121,6 +192,30 @@ class OrderSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+    def validate_contact_phone(self, value: str) -> str:
+        """
+        Валидация и нормализация контактного телефона для заказа.
+        Приводим к формату +7XXXXXXXXXX.
+        """
+        if not value:
+            raise serializers.ValidationError("Укажите номер телефона.")
+
+        digits = "".join(ch for ch in value if ch.isdigit())
+        if not digits:
+            raise serializers.ValidationError("Укажите корректный номер телефона.")
+
+        if digits[0] == "8":
+            digits = "7" + digits[1:]
+        if digits[0] != "7":
+            digits = "7" + digits
+
+        digits = digits[:11]
+
+        if len(digits) != 11:
+            raise serializers.ValidationError("Номер телефона должен содержать 11 цифр.")
+
+        return f"+{digits}"
 
 
 class ReviewSerializer(serializers.ModelSerializer):

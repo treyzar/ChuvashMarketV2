@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { fetchSellerOrders } from "../../shared/api/seller";
+import { Button } from "../../shared/ui";
 import { formatPrice } from "../../shared/lib";
 import styles from "./SellerPages.module.css";
+import { Tag } from "lucide-react";
+import { ITEMS_PER_PAGE } from "../../shared/constants";
 
 const STATUS_LABELS = {
   pending: "Новый",
@@ -13,22 +17,28 @@ const STATUS_LABELS = {
 
 export const SellerOrdersPage = () => {
   const [orders, setOrders] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedOrder, setExpandedOrder] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = Number(searchParams.get("page") || "1");
 
   useEffect(() => {
     setIsLoading(true);
-    fetchSellerOrders()
+    fetchSellerOrders({ page, page_size: ITEMS_PER_PAGE })
       .then((data) => {
-        if (Array.isArray(data)) {
-          setOrders(data);
-        } else if (Array.isArray(data?.results)) {
+        if (data && typeof data === "object" && Array.isArray(data.results)) {
           setOrders(data.results);
+          setTotalCount(Number(data.count) || 0);
+        } else if (Array.isArray(data)) {
+          setOrders(data);
+          setTotalCount(data.length || 0);
         }
       })
       .catch((err) => console.error("Ошибка загрузки заказов:", err))
       .finally(() => setIsLoading(false));
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   return (
     <main className={styles.page}>
@@ -66,6 +76,7 @@ export const SellerOrdersPage = () => {
                   </div>
                   <div style={{ textAlign: "right", marginRight: "1rem" }}>
                     <div className={styles.badge}>
+                      <Tag size={14} style={{ marginRight: 6 }} />
                       {STATUS_LABELS[order.status] ?? order.status}
                     </div>
                     <div style={{ fontWeight: "600", marginTop: "0.5rem" }}>
@@ -129,6 +140,74 @@ export const SellerOrdersPage = () => {
           </ul>
         )}
       </section>
+      {orders.length > 0 && (
+        <div className={styles.pagination}>
+          <Button
+            variant="secondary"
+            disabled={page <= 1}
+            onClick={() =>
+              setSearchParams((p) => {
+                const np = new URLSearchParams(p);
+                np.set("page", String(page - 1));
+                return np;
+              })
+            }
+          >
+            Назад
+          </Button>
+          {totalCount > 0 ? (
+            (() => {
+              const totalPages = Math.max(
+                1,
+                Math.ceil(totalCount / ITEMS_PER_PAGE),
+              );
+              if (totalPages <= 10) {
+                return (
+                  <div className={styles.pageNumbers}>
+                    {Array.from({ length: totalPages }).map((_, idx) => {
+                      const p = idx + 1;
+                      return (
+                        <Button
+                          key={p}
+                          variant={p === page ? "secondary" : "ghost"}
+                          onClick={() =>
+                            setSearchParams((pr) => {
+                              const np = new URLSearchParams(pr);
+                              np.set("page", String(p));
+                              return np;
+                            })
+                          }
+                        >
+                          {p}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                );
+              }
+              return (
+                <span className={styles.pageIndicator}>
+                  Страница {page} из {totalPages}
+                </span>
+              );
+            })()
+          ) : (
+            <span className={styles.pageIndicator}>Страница {page}</span>
+          )}
+          <Button
+            variant="secondary"
+            onClick={() =>
+              setSearchParams((p) => {
+                const np = new URLSearchParams(p);
+                np.set("page", String(page + 1));
+                return np;
+              })
+            }
+          >
+            Вперёд
+          </Button>
+        </div>
+      )}
     </main>
   );
 };

@@ -1,10 +1,17 @@
 import { API_ENDPOINTS } from "../constants";
 import { apiClient } from "./client";
 
-export const fetchSellerProducts = () =>
-  apiClient(API_ENDPOINTS.SELLER_PRODUCTS);
+export const fetchSellerProducts = (params = {}) => {
+  const search = new URLSearchParams(params).toString();
+  const query = search ? `?${search}` : "";
+  return apiClient(`${API_ENDPOINTS.SELLER_PRODUCTS}${query}`);
+};
 
-export const fetchSellerOrders = () => apiClient(API_ENDPOINTS.SELLER_ORDERS);
+export const fetchSellerOrders = (params = {}) => {
+  const search = new URLSearchParams(params).toString();
+  const query = search ? `?${search}` : "";
+  return apiClient(`${API_ENDPOINTS.SELLER_ORDERS}${query}`);
+};
 
 export const createSellerProduct = (data) =>
   apiClient(API_ENDPOINTS.SELLER_PRODUCTS, {
@@ -22,3 +29,6 @@ export const deleteSellerProduct = (id) =>
   apiClient(`${API_ENDPOINTS.SELLER_PRODUCTS}${id}/`, {
     method: "DELETE",
   });
+
+export const fetchSellerAnalytics = () =>
+  apiClient(API_ENDPOINTS.SELLER_ANALYTICS);

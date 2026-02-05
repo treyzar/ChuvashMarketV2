@@ -11,6 +11,7 @@ export const ROUTES = {
   REGISTER: "/auth/register",
   PROFILE: "/account/profile",
   ORDERS: "/account/orders",
+  ORDER_DETAIL: "/account/orders/:id",
   FAVORITES: "/account/favorites",
   SELLER_DASHBOARD: "/seller",
   SELLER_PRODUCTS: "/seller/products",
@@ -26,5 +27,8 @@ export const API_ENDPOINTS = {
   ORDERS: "/api/orders/",
   SELLER_PRODUCTS: "/api/sellers/products/",
   SELLER_ORDERS: "/api/sellers/orders/",
+  SELLER_ANALYTICS: "/api/sellers/analytics/",
   CURRENT_USER: "/api/auth/user/",
 };
+
+export const ITEMS_PER_PAGE = 12;

@@ -10,7 +10,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chuvashmarket.settings')
 django.setup()
 
 from django.contrib.auth import get_user_model
-from market.models import Category, Product, Profile
+from market.models import Category, Product, Profile, Order, OrderItem
 
 User = get_user_model()
 
@@ -178,6 +178,7 @@ def create_test_products(sellers, categories):
     ]
     
     count = 0
+    products = []
     for product_data in products_data:
         defaults = {k: v for k, v in product_data.items() if k != 'name'}
         product, created = Product.objects.get_or_create(
@@ -185,6 +186,7 @@ def create_test_products(sellers, categories):
             seller=product_data['seller'],
             defaults=defaults
         )
+        products.append(product)
         if created:
             count += 1
             print(f"✓ Товар '{product.name}' создан")
@@ -192,6 +194,69 @@ def create_test_products(sellers, categories):
             print(f"✓ Товар '{product.name}' уже существует")
     
     print(f"\nВсего создано новых товаров: {count}")
+    return products
+
+def create_sample_orders(sellers, products):
+    """Создаём примерные заказы и продажи для аналитики продавцов."""
+    import random
+    from django.utils import timezone
+    from datetime import timedelta
+
+    # создаём несколько покупателей
+    customers_data = [
+        {"username": "buyer_anna", "email": "anna@local.ru", "password": "buyer123"},
+        {"username": "buyer_oleg", "email": "oleg@local.ru", "password": "buyer123"},
+        {"username": "buyer_masha", "email": "masha@local.ru", "password": "buyer123"},
+        {"username": "buyer_dima", "email": "dima@local.ru", "password": "buyer123"},
+        {"username": "buyer_lena", "email": "lena@local.ru", "password": "buyer123"},
+        {"username": "buyer_ivan", "email": "ivan@local.ru", "password": "buyer123"},
+    ]
+    customers = []
+    for c in customers_data:
+        if not User.objects.filter(username=c["username"]).exists():
+            u = User.objects.create_user(username=c["username"], email=c["email"], role=User.Roles.CUSTOMER)
+            u.set_password(c["password"])
+            u.save()
+            customers.append(u)
+        else:
+            customers.append(User.objects.get(username=c["username"]))
+
+    # Генерируем много заказов за последние 30 дней для хорошей аналитики
+    now = timezone.now()
+    orders_created = 0
+    
+    for days_ago in range(0, 28):
+        # От 2 до 4 заказов в день
+        orders_per_day = random.randint(2, 4)
+        
+        for _ in range(orders_per_day):
+            order_date = now - timedelta(days=days_ago, hours=random.randint(0, 23), minutes=random.randint(0, 59))
+            buyer = random.choice(customers)
+            order = Order.objects.create(
+                buyer=buyer,
+                contact_name=f"{buyer.first_name or buyer.username}",
+                contact_phone="+7" + "".join([str(random.randint(0, 9)) for _ in range(10)]),
+                delivery_method=random.choice(["pickup", "delivery"]),
+                delivery_address="г. Чебоксары, ул. Примерная, " + str(random.randint(1, 100)),
+                created_at=order_date,
+                updated_at=order_date,
+            )
+
+            # добавим 1-4 товаров в заказ (случайные продавцы)
+            items_count = random.randint(1, 4)
+            chosen = random.sample(products, min(items_count, len(products)))
+            total = 0
+            for prod in chosen:
+                qty = random.randint(1, 5)
+                OrderItem.objects.create(order=order, product=prod, seller=prod.seller, quantity=qty, price=prod.price)
+                total += float(prod.price) * qty
+            order.total_price = total
+            order.save()
+            orders_created += 1
+
+    print(f"✓ Создано {orders_created} заказов за последние 30 дней")
+
+
 
 def main():
     print("=" * 60)
@@ -208,8 +273,11 @@ def main():
     categories = create_categories()
     
     print("\n4. Создание тестовых товаров...")
-    create_test_products(sellers, categories)
-    
+    products = create_test_products(sellers, categories)
+
+    print("\n5. Создание примерных заказов для аналитики...")
+    create_sample_orders(sellers, products)
+
     print("\n" + "=" * 60)
     print("✓ Инициализация завершена!")
     print("=" * 60)

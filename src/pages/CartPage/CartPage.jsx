@@ -1,13 +1,16 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useCart } from "../../shared/context/CartContext.jsx";
 import { Button } from "../../shared/ui";
 import { formatPrice } from "../../shared/lib";
 import { ROUTES } from "../../shared/constants";
 import styles from "./CartPage.module.css";
+import { useAuth } from "../../shared/context/AuthContext.jsx";
+import { Minus, Plus } from "lucide-react";
 
 export const CartPage = () => {
   const { items, total, updateCartItem, removeCartItem } = useCart();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const updateQuantity = (id, quantity) => {
     updateCartItem(id, quantity);
@@ -19,6 +22,10 @@ export const CartPage = () => {
 
   const goToCheckout = () => {
     if (!items.length) return;
+    if (!isAuthenticated) {
+      navigate(ROUTES.LOGIN);
+      return;
+    }
     navigate(ROUTES.CHECKOUT);
   };
 
@@ -50,8 +57,9 @@ export const CartPage = () => {
                       onClick={() =>
                         updateQuantity(item.id, (item.quantity ?? 1) - 1)
                       }
+                      aria-label="уменьшить"
                     >
-                      −
+                      <Minus size={14} />
                     </button>
                     <input
                       type="number"
@@ -66,8 +74,9 @@ export const CartPage = () => {
                       onClick={() =>
                         updateQuantity(item.id, (item.quantity ?? 1) + 1)
                       }
+                      aria-label="увеличить"
                     >
-                      +
+                      <Plus size={14} />
                     </button>
                   </div>
                   <div className={styles.price}>
@@ -91,11 +100,25 @@ export const CartPage = () => {
             <div className={styles.summary}>
               <div className={styles.summaryRow}>
                 <span>Итого</span>
-                <span className={styles.summaryPrice}>{formatPrice(total)}</span>
+                <span className={styles.summaryPrice}>
+                  {formatPrice(total)}
+                </span>
               </div>
-              <Button fullWidth onClick={goToCheckout}>
-                Перейти к оформлению
-              </Button>
+              {isAuthenticated ? (
+                <Button fullWidth onClick={goToCheckout}>
+                  Перейти к оформлению
+                </Button>
+              ) : (
+                <div>
+                  <p className={styles.hint}>
+                    Чтобы оформить заказ, пожалуйста,{" "}
+                    <Link to={ROUTES.LOGIN}>войдите в аккаунт</Link>.
+                  </p>
+                  <Button fullWidth onClick={() => navigate(ROUTES.LOGIN)}>
+                    Войти
+                  </Button>
+                </div>
+              )}
             </div>
           </aside>
         </div>
@@ -103,4 +126,3 @@ export const CartPage = () => {
     </main>
   );
 };
-

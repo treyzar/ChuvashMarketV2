@@ -5,9 +5,9 @@ from .views import (
     AdminOrderViewSet,
     AdminUserViewSet,
     CartViewSet,
-    CategoryViewSet,
     CurrentUserView,
     BecomeSellerView,
+    ImageViewSet,
     JwtLoginView,
     JwtRefreshView,
     OrderViewSet,
@@ -17,14 +17,15 @@ from .views import (
     ReviewViewSet,
     SellerOrderViewSet,
     SellerProductViewSet,
+    SellerAnalyticsView,
 )
 
 router = DefaultRouter()
 router.register(r"products", ProductViewSet, basename="product")
-router.register(r"categories", CategoryViewSet, basename="category")
 router.register(r"cart", CartViewSet, basename="cart")
 router.register(r"orders", OrderViewSet, basename="order")
 router.register(r"reviews", ReviewViewSet, basename="review")
+router.register(r"images", ImageViewSet, basename="image")
 router.register(r"sellers/products", SellerProductViewSet, basename="seller-products")
 router.register(r"sellers/orders", SellerOrderViewSet, basename="seller-orders")
 router.register(r"users", AdminUserViewSet, basename="admin-users")
@@ -41,6 +42,7 @@ auth_patterns = [
 urlpatterns = [
     path("auth/", include((auth_patterns, "auth"), namespace="auth")),
     path("users/profile/", ProfileView.as_view(), name="user-profile"),
+    path("sellers/analytics/", SellerAnalyticsView.as_view(), name="seller-analytics"),
     path("", include(router.urls)),
 ]
 

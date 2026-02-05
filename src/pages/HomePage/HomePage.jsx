@@ -66,57 +66,6 @@ export const HomePage = () => {
       </section>
 
       <section>
-        <div className={styles.categories}>
-          <button
-            type="button"
-            className={styles.categoryChip}
-            onClick={() =>
-              navigate({
-                pathname: ROUTES.PRODUCTS,
-                search: "?category=food",
-              })
-            }
-          >
-            Еда и фермерские продукты
-          </button>
-          <button
-            type="button"
-            className={styles.categoryChip}
-            onClick={() =>
-              navigate({
-                pathname: ROUTES.PRODUCTS,
-                search: "?category=clothes",
-              })
-            }
-          >
-            Одежда и аксессуары
-          </button>
-          <button
-            type="button"
-            className={styles.categoryChip}
-            onClick={() =>
-              navigate({
-                pathname: ROUTES.PRODUCTS,
-                search: "?category=home",
-              })
-            }
-          >
-            Дом и интерьер
-          </button>
-          <button
-            type="button"
-            className={styles.categoryChip}
-            onClick={() =>
-              navigate({
-                pathname: ROUTES.PRODUCTS,
-                search: "?category=souvenirs",
-              })
-            }
-          >
-            Сувениры и подарки
-          </button>
-        </div>
-
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Новые товары</h2>
         </div>
