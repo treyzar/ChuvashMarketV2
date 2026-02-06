@@ -4,6 +4,7 @@ import { Button } from "../../shared/ui";
 import { ROUTES } from "../../shared/constants";
 import { login as loginApi } from "../../shared/api/auth";
 import { useAuth } from "../../shared/context/AuthContext.jsx";
+import { Mail, Lock, LogIn, AlertCircle } from "lucide-react";
 import styles from "./AuthPages.module.css";
 
 export const LoginPage = () => {
@@ -15,6 +16,7 @@ export const LoginPage = () => {
 
   const handleChange = (field) => (event) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
+    if (error) setError("");
   };
 
   const handleSubmit = async (event) => {
@@ -24,7 +26,7 @@ export const LoginPage = () => {
     try {
       const data = await loginApi({ email: form.email, password: form.password });
       if (data?.access) {
-        saveTokens(data.access, data.refresh);
+        saveTokens(data.access, data.refresh);  
         navigate(ROUTES.HOME);
       } else {
         setError("Не удалось войти. Попробуйте ещё раз.");
@@ -42,38 +44,71 @@ export const LoginPage = () => {
 
   return (
     <main className={styles.page}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Вход в ЧувашМаркет</h1>
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <label className={styles.field}>
-            <span>Email</span>
-            <input
-              type="email"
-              value={form.email}
-              onChange={handleChange("email")}
-              required
-            />
-          </label>
-          <label className={styles.field}>
-            <span>Пароль</span>
-            <input
-              type="password"
-              value={form.password}
-              onChange={handleChange("password")}
-              required
-            />
-          </label>
-          {error && <p className={styles.error}>{error}</p>}
-          <Button type="submit" fullWidth disabled={isSubmitting}>
-            {isSubmitting ? "Входим..." : "Войти"}
-          </Button>
-        </form>
-        <p className={styles.helper}>
-          Нет аккаунта?{" "}
-          <Link to={ROUTES.REGISTER}>Зарегистрироваться</Link>
-        </p>
+      <div className={styles.container}>
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.iconWrapper}>
+              <LogIn size={28} strokeWidth={2} />
+            </div>
+            <h1 className={styles.title}>Вход в аккаунт</h1>
+            <p className={styles.subtitle}>Добро пожаловать в ЧувашМаркет</p>
+          </div>
+
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <div className={styles.field}>
+              <label className={styles.label}>
+                <Mail size={16} />
+                <span>Email адрес</span>
+              </label>
+              <input
+                type="email"
+                value={form.email}
+                onChange={handleChange("email")}
+                placeholder="example@mail.com"
+                className={styles.input}
+                required
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label}>
+                <Lock size={16} />
+                <span>Пароль</span>
+              </label>
+              <input
+                type="password"
+                value={form.password}
+                onChange={handleChange("password")}
+                placeholder="••••••••"
+                className={styles.input}
+                required
+              />
+            </div>
+
+            {error && (
+              <div className={styles.errorBox}>
+                <AlertCircle size={16} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <Button type="submit" fullWidth disabled={isSubmitting}>
+              {isSubmitting ? "Входим..." : "Войти"}
+            </Button>
+          </form>
+
+          <div className={styles.divider}>
+            <span>или</span>
+          </div>
+
+          <p className={styles.helper}>
+            Нет аккаунта?{" "}
+            <Link to={ROUTES.REGISTER} className={styles.link}>
+              Зарегистрироваться
+            </Link>
+          </p>
+        </div>
       </div>
     </main>
   );
 };
-

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../../shared/ui";
 import { ROUTES } from "../../shared/constants";
 import { register as registerApi } from "../../shared/api/auth";
+import { Mail, Lock, UserPlus, AlertCircle, CheckCircle, ShoppingBag, Store } from "lucide-react";
 import styles from "./AuthPages.module.css";
 
 export const RegisterPage = () => {
@@ -19,6 +20,7 @@ export const RegisterPage = () => {
 
   const handleChange = (field) => (event) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
+    if (error) setError("");
   };
 
   const handleSubmit = async (event) => {
@@ -31,6 +33,11 @@ export const RegisterPage = () => {
       return;
     }
 
+    if (form.password.length < 6) {
+      setError("Пароль должен содержать минимум 6 символов.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await registerApi({
@@ -38,10 +45,10 @@ export const RegisterPage = () => {
         password: form.password,
         role: form.role,
       });
-      setSuccess("Аккаунт создан. Теперь можно войти.");
+      setSuccess("Аккаунт создан. Перенаправляем на страницу входа...");
       setTimeout(() => {
         navigate(ROUTES.LOGIN);
-      }, 800);
+      }, 1500);
     } catch (e) {
       if (e.data?.email?.length) {
         setError(e.data.email[0]);
@@ -57,52 +64,133 @@ export const RegisterPage = () => {
 
   return (
     <main className={styles.page}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Регистрация в ЧувашМаркет</h1>
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <label className={styles.field}>
-            <span>Email</span>
-            <input
-              type="email"
-              value={form.email}
-              onChange={handleChange("email")}
-              required
-            />
-          </label>
-          <label className={styles.field}>
-            <span>Пароль</span>
-            <input
-              type="password"
-              value={form.password}
-              onChange={handleChange("password")}
-              required
-            />
-          </label>
-          <label className={styles.field}>
-            <span>Повтор пароля</span>
-            <input
-              type="password"
-              value={form.passwordConfirm}
-              onChange={handleChange("passwordConfirm")}
-              required
-            />
-          </label>
-          <label className={styles.field}>
-            <span>Тип аккаунта</span>
-            <select value={form.role} onChange={handleChange("role")}>
-              <option value="customer">Покупатель</option>
-              <option value="seller">Продавец</option>
-            </select>
-          </label>
-          {error && <p className={styles.error}>{error}</p>}
-          {success && <p className={styles.success}>{success}</p>}
-          <Button type="submit" fullWidth disabled={isSubmitting}>
-            {isSubmitting ? "Создаём..." : "Создать аккаунт"}
-          </Button>
-        </form>
-        <p className={styles.helper}>
-          Уже есть аккаунт? <Link to={ROUTES.LOGIN}>Войти</Link>
-        </p>
+      <div className={styles.container}>
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.iconWrapper}>
+              <UserPlus size={28} strokeWidth={2} />
+            </div>
+            <h1 className={styles.title}>Создать аккаунт</h1>
+            <p className={styles.subtitle}>Присоединяйтесь к ЧувашМаркет</p>
+          </div>
+
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <div className={styles.field}>
+              <label className={styles.label}>
+                <Mail size={16} />
+                <span>Email адрес</span>
+              </label>
+              <input
+                type="email"
+                value={form.email}
+                onChange={handleChange("email")}
+                placeholder="example@mail.com"
+                className={styles.input}
+                required
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label}>
+                <Lock size={16} />
+                <span>Пароль</span>
+              </label>
+              <input
+                type="password"
+                value={form.password}
+                onChange={handleChange("password")}
+                placeholder="Минимум 6 символов"
+                className={styles.input}
+                required
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label}>
+                <Lock size={16} />
+                <span>Повторите пароль</span>
+              </label>
+              <input
+                type="password"
+                value={form.passwordConfirm}
+                onChange={handleChange("passwordConfirm")}
+                placeholder="Повторите пароль"
+                className={styles.input}
+                required
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label}>
+                <span>Тип аккаунта</span>
+              </label>
+              <div className={styles.roleSelector}>
+                <label className={`${styles.roleOption} ${form.role === "customer" ? styles.roleOptionActive : ""}`}>
+                  <input
+                    type="radio"
+                    name="role"
+                    value="customer"
+                    checked={form.role === "customer"}
+                    onChange={handleChange("role")}
+                  />
+                  <div className={styles.roleContent}>
+                    <ShoppingBag size={24} />
+                    <div>
+                      <div className={styles.roleTitle}>Покупатель</div>
+                      <div className={styles.roleDescription}>Покупайте товары</div>
+                    </div>
+                  </div>
+                </label>
+
+                <label className={`${styles.roleOption} ${form.role === "seller" ? styles.roleOptionActive : ""}`}>
+                  <input
+                    type="radio"
+                    name="role"
+                    value="seller"
+                    checked={form.role === "seller"}
+                    onChange={handleChange("role")}
+                  />
+                  <div className={styles.roleContent}>
+                    <Store size={24} />
+                    <div>
+                      <div className={styles.roleTitle}>Продавец</div>
+                      <div className={styles.roleDescription}>Продавайте товары</div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {error && (
+              <div className={styles.errorBox}>
+                <AlertCircle size={16} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {success && (
+              <div className={styles.successBox}>
+                <CheckCircle size={16} />
+                <span>{success}</span>
+              </div>
+            )}
+
+            <Button type="submit" fullWidth disabled={isSubmitting}>
+              {isSubmitting ? "Создаём..." : "Создать аккаунт"}
+            </Button>
+          </form>
+
+          <div className={styles.divider}>
+            <span>или</span>
+          </div>
+
+          <p className={styles.helper}>
+            Уже есть аккаунт?{" "}
+            <Link to={ROUTES.LOGIN} className={styles.link}>
+              Войти
+            </Link>
+          </p>
+        </div>
       </div>
     </main>
   );

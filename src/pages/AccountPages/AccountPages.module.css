@@ -539,6 +539,108 @@
   font-weight: 500;
 }
 
+.logoutButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #ef4444 !important;
+  border-color: #ef4444 !important;
+}
+
+.logoutButton:hover {
+  background: #fef2f2 !important;
+  border-color: #dc2626 !important;
+  color: #dc2626 !important;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modalHeader {
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.modalBody {
+  padding: 1.5rem;
+}
+
+.modalText {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.modalFooter {
+  padding: 1rem 1.5rem 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.logoutConfirmButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ef4444 !important;
+  border-color: #ef4444 !important;
+}
+
+.logoutConfirmButton:hover {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+}
+
 .profileHeader {
   margin-bottom: 0.75rem;
 }
@@ -702,3 +804,510 @@
   }
 }
 
+
+@media (max-width: 640px) {
+  .page {
+    padding: 1rem 0.75rem 1.5rem;
+  }
+
+  .pageHeader {
+    margin-bottom: 1.5rem;
+  }
+
+  .pageTitle {
+    font-size: 1.3rem;
+  }
+
+  .pageSubtitle {
+    font-size: 0.9rem;
+  }
+
+  .loadingContainer {
+    min-height: 300px;
+  }
+
+  .spinner {
+    width: 42px;
+    height: 42px;
+  }
+
+  .loadingText {
+    font-size: 1rem;
+  }
+
+  .emptyState {
+    min-height: 300px;
+    padding: 1.5rem;
+  }
+
+  .emptyStateIcon {
+    font-size: 2.5rem;
+  }
+
+  .emptyStateTitle {
+    font-size: 1.2rem;
+  }
+
+  .emptyStateText {
+    font-size: 0.9rem;
+  }
+
+  .ordersList {
+    gap: 1rem;
+  }
+
+  .orderCard {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  .orderCardImage {
+    width: 70px;
+    height: 70px;
+  }
+
+  .orderCardTitle {
+    font-size: 1rem;
+  }
+
+  .orderCardStatus {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.65rem;
+  }
+
+  .orderCardMeta {
+    gap: 0.75rem;
+  }
+
+  .orderCardMetaItem {
+    font-size: 0.8rem;
+  }
+
+  .orderCardDescription {
+    font-size: 0.85rem;
+  }
+
+  .orderCardPrice {
+    font-size: 1.05rem;
+  }
+
+  .orderCardLink {
+    font-size: 0.85rem;
+  }
+
+  .backButton {
+    font-size: 0.9rem;
+    padding: 0.5rem 0;
+    margin-bottom: 1rem;
+  }
+
+  .orderDetailHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .orderDetailStatus {
+    align-self: flex-start;
+  }
+
+  .orderDetailDate {
+    font-size: 0.85rem;
+  }
+
+  .orderDetailGrid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .orderDetailCard {
+    padding: 1.25rem;
+    border-radius: 14px;
+  }
+
+  .orderDetailCardTitle {
+    font-size: 1.1rem;
+  }
+
+  .orderDetailInfoItem {
+    gap: 0.75rem;
+  }
+
+  .orderDetailInfoLabel {
+    font-size: 0.8rem;
+  }
+
+  .orderDetailInfoValue {
+    font-size: 0.85rem;
+  }
+
+  .orderDetailItem {
+    padding: 0.875rem;
+  }
+
+  .orderDetailItemImage {
+    width: 60px;
+    height: 60px;
+  }
+
+  .orderDetailItemName {
+    font-size: 0.9rem;
+  }
+
+  .orderDetailItemMeta {
+    font-size: 0.8rem;
+  }
+
+  .orderDetailItemPrice {
+    font-size: 1rem;
+  }
+
+  .orderDetailTotal {
+    padding: 1rem;
+  }
+
+  .orderDetailTotalPrice {
+    font-size: 1.2rem;
+  }
+
+  .profileCard {
+    padding: 1.5rem;
+    border-radius: 14px;
+  }
+
+  .profileHeader {
+    padding: 1.25rem;
+  }
+
+  .profileAvatar {
+    width: 70px;
+    height: 70px;
+  }
+
+  .profileName {
+    font-size: 1.2rem;
+  }
+
+  .profileEmail {
+    font-size: 0.85rem;
+  }
+
+  .profileBadge {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.65rem;
+  }
+
+  .profileBody {
+    padding: 1.25rem;
+  }
+
+  .profileInfoItem {
+    padding: 0.875rem 0;
+  }
+
+  .profileInfoLabel {
+    font-size: 0.8rem;
+  }
+
+  .profileInfoValue {
+    font-size: 0.9rem;
+  }
+
+  .profileActions {
+    padding: 1rem 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .editCard {
+    padding: 1.25rem;
+    border-radius: 14px;
+  }
+
+  .editCardTitle {
+    font-size: 1.1rem;
+  }
+
+  .formGroup {
+    margin-bottom: 1rem;
+  }
+
+  .formLabel {
+    font-size: 0.85rem;
+  }
+
+  .formInput {
+    padding: 0.65rem;
+    font-size: 0.85rem;
+  }
+
+  .formActions {
+    gap: 0.75rem;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .pageNumbers {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pageIndicator {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 0.875rem 0.625rem 1.25rem;
+  }
+
+  .pageTitle {
+    font-size: 1.2rem;
+  }
+
+  .pageSubtitle {
+    font-size: 0.85rem;
+  }
+
+  .loadingContainer {
+    min-height: 250px;
+  }
+
+  .spinner {
+    width: 38px;
+    height: 38px;
+  }
+
+  .loadingText {
+    font-size: 0.95rem;
+  }
+
+  .emptyState {
+    min-height: 250px;
+    padding: 1.25rem;
+  }
+
+  .emptyStateIcon {
+    font-size: 2.25rem;
+  }
+
+  .emptyStateTitle {
+    font-size: 1.1rem;
+  }
+
+  .emptyStateText {
+    font-size: 0.85rem;
+  }
+
+  .ordersList {
+    gap: 0.875rem;
+  }
+
+  .orderCard {
+    padding: 0.875rem;
+    border-radius: 12px;
+  }
+
+  .orderCardImage {
+    width: 60px;
+    height: 60px;
+  }
+
+  .orderCardTitle {
+    font-size: 0.95rem;
+  }
+
+  .orderCardStatus {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
+  }
+
+  .orderCardMeta {
+    gap: 0.625rem;
+    flex-wrap: wrap;
+  }
+
+  .orderCardMetaItem {
+    font-size: 0.75rem;
+  }
+
+  .orderCardDescription {
+    font-size: 0.8rem;
+  }
+
+  .orderCardFooter {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .orderCardPrice {
+    font-size: 1rem;
+  }
+
+  .orderCardLink {
+    font-size: 0.8rem;
+  }
+
+  .backButton {
+    font-size: 0.85rem;
+    padding: 0.4rem 0;
+  }
+
+  .orderDetailHeader {
+    gap: 0.875rem;
+  }
+
+  .orderDetailStatus {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+  }
+
+  .orderDetailDate {
+    font-size: 0.8rem;
+  }
+
+  .orderDetailGrid {
+    gap: 1rem;
+  }
+
+  .orderDetailCard {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .orderDetailCardTitle {
+    font-size: 1rem;
+  }
+
+  .orderDetailInfoItem {
+    gap: 0.625rem;
+  }
+
+  .orderDetailInfoLabel {
+    font-size: 0.75rem;
+  }
+
+  .orderDetailInfoValue {
+    font-size: 0.8rem;
+  }
+
+  .orderDetailItem {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .orderDetailItemImage {
+    width: 55px;
+    height: 55px;
+  }
+
+  .orderDetailItemName {
+    font-size: 0.85rem;
+  }
+
+  .orderDetailItemMeta {
+    font-size: 0.75rem;
+  }
+
+  .orderDetailItemPrice {
+    font-size: 0.95rem;
+  }
+
+  .orderDetailTotal {
+    padding: 0.875rem;
+    font-size: 0.9rem;
+  }
+
+  .orderDetailTotalPrice {
+    font-size: 1.15rem;
+  }
+
+  .profileCard {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+
+  .profileHeader {
+    padding: 1rem;
+  }
+
+  .profileAvatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .profileName {
+    font-size: 1.1rem;
+  }
+
+  .profileEmail {
+    font-size: 0.8rem;
+  }
+
+  .profileBadge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
+  }
+
+  .profileBody {
+    padding: 1rem;
+  }
+
+  .profileInfoItem {
+    padding: 0.75rem 0;
+  }
+
+  .profileInfoLabel {
+    font-size: 0.75rem;
+  }
+
+  .profileInfoValue {
+    font-size: 0.85rem;
+  }
+
+  .profileActions {
+    padding: 0.875rem 1rem;
+    gap: 0.625rem;
+    flex-direction: column;
+  }
+
+  .editCard {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .editCardTitle {
+    font-size: 1rem;
+  }
+
+  .formGroup {
+    margin-bottom: 0.875rem;
+  }
+
+  .formLabel {
+    font-size: 0.8rem;
+  }
+
+  .formInput {
+    padding: 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .formActions {
+    gap: 0.625rem;
+    flex-direction: column-reverse;
+  }
+
+  .pagination {
+    gap: 0.5rem;
+  }
+
+  .pageIndicator {
+    font-size: 0.75rem;
+  }
+}

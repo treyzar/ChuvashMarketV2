@@ -1,3 +1,4 @@
+import { Users, Star, Package, TrendingUp, DollarSign, BarChart3 } from "lucide-react";
 import styles from "./Charts.module.css";
 
 /**
@@ -16,7 +17,9 @@ export const AdvancedStatsGrid = ({
   return (
     <div className={styles.advancedStatsGrid}>
       <div className={styles.advancedStatItem}>
-        <div className={styles.advancedStatIcon}>👥</div>
+        <div className={styles.advancedStatIcon}>
+          <Users size={24} />
+        </div>
         <div className={styles.advancedStatContent}>
           <p className={styles.advancedStatLabel}>Уникальные покупатели</p>
           <p className={styles.advancedStatValue}>{uniqueBuyers}</p>
@@ -25,7 +28,9 @@ export const AdvancedStatsGrid = ({
       </div>
 
       <div className={styles.advancedStatItem}>
-        <div className={styles.advancedStatIcon}>⭐</div>
+        <div className={styles.advancedStatIcon}>
+          <Star size={24} />
+        </div>
         <div className={styles.advancedStatContent}>
           <p className={styles.advancedStatLabel}>Средний рейтинг</p>
           <p className={styles.advancedStatValue}>{avgRating.toFixed(1)}</p>
@@ -34,7 +39,9 @@ export const AdvancedStatsGrid = ({
       </div>
 
       <div className={styles.advancedStatItem}>
-        <div className={styles.advancedStatIcon}>📦</div>
+        <div className={styles.advancedStatIcon}>
+          <Package size={24} />
+        </div>
         <div className={styles.advancedStatContent}>
           <p className={styles.advancedStatLabel}>Средний размер заказа</p>
           <p className={styles.advancedStatValue}>{avgOrderSize.toFixed(1)}</p>
@@ -43,7 +50,9 @@ export const AdvancedStatsGrid = ({
       </div>
 
       <div className={styles.advancedStatItem}>
-        <div className={styles.advancedStatIcon}>📊</div>
+        <div className={styles.advancedStatIcon}>
+          <BarChart3 size={24} />
+        </div>
         <div className={styles.advancedStatContent}>
           <p className={styles.advancedStatLabel}>Общий объем продаж</p>
           <p className={styles.advancedStatValue}>{totalUnitsSold}</p>
@@ -52,7 +61,9 @@ export const AdvancedStatsGrid = ({
       </div>
 
       <div className={styles.advancedStatItem}>
-        <div className={styles.advancedStatIcon}>💰</div>
+        <div className={styles.advancedStatIcon}>
+          <DollarSign size={24} />
+        </div>
         <div className={styles.advancedStatContent}>
           <p className={styles.advancedStatLabel}>Средняя цена товара</p>
           <p className={styles.advancedStatValue}>
@@ -63,7 +74,9 @@ export const AdvancedStatsGrid = ({
       </div>
 
       <div className={styles.advancedStatItem}>
-        <div className={styles.advancedStatIcon}>📈</div>
+        <div className={styles.advancedStatIcon}>
+          <TrendingUp size={24} />
+        </div>
         <div className={styles.advancedStatContent}>
           <p className={styles.advancedStatLabel}>Диапазон цен</p>
           <p className={styles.advancedStatValue}>

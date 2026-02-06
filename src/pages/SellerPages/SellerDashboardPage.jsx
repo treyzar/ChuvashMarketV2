@@ -116,8 +116,9 @@ export const SellerDashboardPage = () => {
       : "0.0";
 
   const unitsSold = top_products.reduce((s, p) => s + (p.quantity || 0), 0);
-  const avgOrderValue =
-    completedOrders > 0 ? total_revenue / Math.max(1, completedOrders) : 0;
+  
+  // Средний чек = общая выручка / количество заказов (все заказы, не только завершенные)
+  const avgOrderValue = orders_count > 0 ? total_revenue / orders_count : 0;
 
   return (
     <main className={styles.dashboardPage}>
@@ -141,7 +142,7 @@ export const SellerDashboardPage = () => {
         <StatCard
           title="Средний чек"
           value={formatPrice(avgOrderValue)}
-          subtitle={`Завершённых: ${completedOrders} / ${orders_count}`}
+          subtitle={`Всего заказов: ${orders_count}`}
           icon={ShoppingCart}
           color="green"
         />

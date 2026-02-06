@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../../shared/ui";
 import { useAuth } from "../../shared/context/AuthContext.jsx";
 import { fetchProfile, updateProfile } from "../../shared/api/account";
+import { ROUTES } from "../../shared/constants";
 import styles from "./AccountPages.module.css";
-import { User, Mail, Phone, MapPin, Shield, CheckCircle, AlertCircle } from "lucide-react";
+import { User, Mail, Phone, MapPin, Shield, CheckCircle, AlertCircle, LogOut } from "lucide-react";
 
 export const ProfilePage = () => {
-  const { user } = useAuth();
+  const { user, clearTokens } = useAuth();
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     phone: "",
     address: "",
@@ -18,6 +21,7 @@ export const ProfilePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
@@ -111,6 +115,11 @@ export const ProfilePage = () => {
       default:
         return { label: "Покупатель", color: "#10b981", bg: "#d1fae5" };
     }
+  };
+
+  const handleLogout = () => {
+    clearTokens();
+    navigate(ROUTES.HOME);
   };
 
   const roleBadge = user ? getRoleBadge(user.role) : null;
@@ -256,9 +265,51 @@ export const ProfilePage = () => {
             <Button type="submit" disabled={isSaving} fullWidth>
               {isSaving ? "Сохраняем..." : "Сохранить изменения"}
             </Button>
+
+            <Button 
+              type="button" 
+              variant="secondary" 
+              fullWidth
+              onClick={() => setShowLogoutModal(true)}
+              className={styles.logoutButton}
+            >
+              <LogOut size={16} />
+              Выйти из аккаунта
+            </Button>
           </form>
         </section>
       </div>
+
+      {/* Модальное окно подтверждения выхода */}
+      {showLogoutModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowLogoutModal(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>Выход из аккаунта</h3>
+            </div>
+            <div className={styles.modalBody}>
+              <p className={styles.modalText}>
+                Вы уверены, что хотите выйти из аккаунта?
+              </p>
+            </div>
+            <div className={styles.modalFooter}>
+              <Button 
+                variant="secondary" 
+                onClick={() => setShowLogoutModal(false)}
+              >
+                Отмена
+              </Button>
+              <Button 
+                onClick={handleLogout}
+                className={styles.logoutConfirmButton}
+              >
+                <LogOut size={16} />
+                Выйти
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

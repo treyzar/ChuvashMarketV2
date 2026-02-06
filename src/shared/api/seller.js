@@ -32,3 +32,9 @@ export const deleteSellerProduct = (id) =>
 
 export const fetchSellerAnalytics = () =>
   apiClient(API_ENDPOINTS.SELLER_ANALYTICS);
+
+export const updateOrderStatus = (orderId, status) =>
+  apiClient(`${API_ENDPOINTS.SELLER_ORDERS}${orderId}/status/`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });

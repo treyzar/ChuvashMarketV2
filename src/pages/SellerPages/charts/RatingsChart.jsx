@@ -9,6 +9,7 @@ import {
   Legend,
   Cell,
 } from "recharts";
+import { Star, Sparkles, AlertTriangle } from "lucide-react";
 import styles from "./Charts.module.css";
 
 /**
@@ -23,11 +24,24 @@ export const RatingsChart = ({ bestProducts = [], worstProducts = [] }) => {
       return (
         <div className={styles.customTooltip}>
           <p className={styles.tooltipDate}>{name}</p>
-          <p className={styles.tooltipValue}>Рейтинг: {rating.toFixed(1)} ⭐</p>
+          <p className={styles.tooltipValue}>
+            Рейтинг: {rating.toFixed(1)} <Star size={14} style={{ display: "inline", verticalAlign: "middle" }} />
+          </p>
         </div>
       );
     }
     return null;
+  };
+
+  const renderStars = (rating) => {
+    const fullStars = Math.floor(rating);
+    return (
+      <div style={{ display: "flex", gap: "2px" }}>
+        {Array.from({ length: fullStars }).map((_, i) => (
+          <Star key={i} size={14} fill="currentColor" />
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -43,7 +57,8 @@ export const RatingsChart = ({ bestProducts = [], worstProducts = [] }) => {
         {/* Лучшие товары */}
         <div className={styles.ratingsSection}>
           <h4 className={styles.ratingsSectionTitle}>
-            🌟 Лучшие товары ({bestProducts.length})
+            <Sparkles size={18} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.5rem" }} />
+            Лучшие товары ({bestProducts.length})
           </h4>
           {bestProducts.length > 0 ? (
             <div className={styles.ratingsList}>
@@ -55,7 +70,7 @@ export const RatingsChart = ({ bestProducts = [], worstProducts = [] }) => {
                   </div>
                   <div className={styles.ratingRight}>
                     <div className={styles.ratingStars}>
-                      {"⭐".repeat(Math.floor(product.rating))}
+                      {renderStars(product.rating)}
                     </div>
                     <span className={styles.ratingValue}>
                       {product.rating.toFixed(1)}
@@ -72,7 +87,8 @@ export const RatingsChart = ({ bestProducts = [], worstProducts = [] }) => {
         {/* Худшие товары */}
         <div className={styles.ratingsSection}>
           <h4 className={styles.ratingsSectionTitle}>
-            ⚠️ Товары для улучшения ({worstProducts.length})
+            <AlertTriangle size={18} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.5rem" }} />
+            Товары для улучшения ({worstProducts.length})
           </h4>
           {worstProducts.length > 0 ? (
             <div className={styles.ratingsList}>
@@ -89,7 +105,7 @@ export const RatingsChart = ({ bestProducts = [], worstProducts = [] }) => {
                   </div>
                   <div className={styles.ratingRight}>
                     <div className={styles.ratingStars}>
-                      {"⭐".repeat(Math.floor(product.rating))}
+                      {renderStars(product.rating)}
                     </div>
                     <span
                       className={styles.ratingValue}
