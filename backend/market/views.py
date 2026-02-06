@@ -100,11 +100,18 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if self.action in {"update", "partial_update", "destroy", "list"} and self.request.user.is_authenticated:
+        
+        # Для продавцов при редактировании/удалении/просмотре показываем все их товары (включая неопубликованные)
+        if self.action in {"update", "partial_update", "destroy"} and self.request.user.is_authenticated:
             if self.request.user.role == User.Roles.SELLER:
-                # продавец видит только свои товары при управлении
-                if self.action != "list":
-                    return Product.objects.filter(seller=self.request.user)
+                return Product.objects.filter(seller=self.request.user).select_related("seller")
+        
+        # Для retrieve (детальный просмотр) показываем опубликованные товары всем
+        # Продавцы могут видеть свои неопубликованные через SellerProductViewSet
+        if self.action == "retrieve":
+            return Product.objects.filter(is_published=True).select_related("seller")
+        
+        # Для списка товаров показываем только опубликованные
         return qs
 
 
@@ -294,11 +301,12 @@ class SellerProductViewSet(viewsets.ModelViewSet):
         serializer.save(seller=self.request.user)
 
 
-class SellerOrderViewSet(viewsets.ReadOnlyModelViewSet):
+class SellerOrderViewSet(viewsets.ModelViewSet):
     """Заказы на товары продавца: /api/sellers/orders/"""
 
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated, IsSeller]
+    http_method_names = ['get', 'head', 'options', 'patch']
 
     def get_queryset(self):
         return (
@@ -306,6 +314,40 @@ class SellerOrderViewSet(viewsets.ReadOnlyModelViewSet):
             .distinct()
             .prefetch_related("items__product")
         )
+
+    @action(detail=True, methods=["patch"], url_path="status")
+    def update_status(self, request, pk=None):
+        """
+        Обновление статуса заказа продавцом.
+        PATCH /api/sellers/orders/{id}/status/
+        Body: { "status": "shipped" }
+        """
+        order = self.get_object()
+        new_status = request.data.get("status")
+
+        if not new_status:
+            return Response(
+                {"detail": "Поле 'status' обязательно."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if new_status not in Order.Status.values:
+            return Response(
+                {"detail": "Недопустимый статус заказа."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Проверяем, что продавец имеет товары в этом заказе
+        if not order.items.filter(seller=request.user).exists():
+            return Response(
+                {"detail": "У вас нет прав на изменение этого заказа."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        order.status = new_status
+        order.save(update_fields=["status"])
+        serializer = self.get_serializer(order)
+        return Response(serializer.data)
 
 
 class AdminUserViewSet(viewsets.ModelViewSet):
