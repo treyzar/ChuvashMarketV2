@@ -2,8 +2,9 @@ import { NavLink } from "react-router-dom";
 import { Button } from "../../../shared/ui";
 import { ROUTES } from "../../../shared/constants";
 import styles from "./Header.module.css";
-import { ShoppingCart, LogOut, Home, Package, ShoppingBag, BarChart3, User, LogIn as LoginIcon } from "lucide-react";
+import { ShoppingCart, LogOut, Home, Package, ShoppingBag, BarChart3, User, LogIn as LoginIcon, Heart } from "lucide-react";
 import { useAuth } from "../../../shared/context/AuthContext.jsx";
+import { ThemeToggle } from "./ThemeToggle";
 
 const navLinkClass = ({ isActive }) =>
   [styles.navLink, isActive ? styles.navLinkActive : ""]
@@ -42,10 +43,16 @@ export const Header = ({ cartCount = 0 }) => {
             <span>Каталог</span>
           </NavLink>
           {isAuthenticated && (
-            <NavLink to={ROUTES.ORDERS} className={navLinkClass}>
-              <ShoppingBag size={16} />
-              <span>Мои заказы</span>
-            </NavLink>
+            <>
+              <NavLink to={ROUTES.FAVORITES} className={navLinkClass}>
+                <Heart size={16} />
+                <span>Избранное</span>
+              </NavLink>
+              <NavLink to={ROUTES.ORDERS} className={navLinkClass}>
+                <ShoppingBag size={16} />
+                <span>Мои заказы</span>
+              </NavLink>
+            </>
           )}
           {user?.role === "seller" && (
             <NavLink to={ROUTES.SELLER_DASHBOARD} className={navLinkClass}>
@@ -56,6 +63,8 @@ export const Header = ({ cartCount = 0 }) => {
         </nav>
 
         <div className={styles.right}>
+          <ThemeToggle />
+          
           <NavLink to={ROUTES.CART} className={styles.cartButton}>
             <div className={styles.cartButtonInner}>
               <ShoppingCart size={18} />

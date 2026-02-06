@@ -12,20 +12,28 @@
 }
 
 .primary {
-  background: linear-gradient(135deg, #3f769a, #3a5981);
+  background: linear-gradient(135deg, var(--accent-secondary, #3f769a), var(--accent-primary, #3a5981));
   color: #ffffff;
   box-shadow: 0 6px 12px rgba(63, 118, 154, 0.25);
 }
 
 .secondary {
-  background-color: #ffffff;
-  color: #243f4b;
-  border: 1px solid #a5aaaf;
+  background-color: var(--bg-secondary, #ffffff);
+  color: var(--text-primary, #243f4b);
+  border: 1px solid var(--border-color, #a5aaaf);
+}
+
+.secondary:hover:not(:disabled) {
+  background-color: var(--bg-tertiary, #f9fafb);
 }
 
 .ghost {
   background-color: transparent;
-  color: #243f4b;
+  color: var(--text-primary, #243f4b);
+}
+
+.ghost:hover:not(:disabled) {
+  background-color: var(--bg-tertiary, #f9fafb);
 }
 
 .fullWidth {

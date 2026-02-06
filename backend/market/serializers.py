@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import Cart, CartItem, Image, Order, OrderItem, Product, Profile, Review
+from .models import Cart, CartItem, Favorite, Image, Order, OrderItem, Product, Profile, Review
 
 User = get_user_model()
 
@@ -251,4 +251,18 @@ class RegisterSerializer(serializers.ModelSerializer):
             type=Profile.Types.SELLER if user.role == User.Roles.SELLER else Profile.Types.CUSTOMER,
         )
         return user
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+    product_id = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.filter(is_published=True),
+        write_only=True,
+        source="product",
+    )
+
+    class Meta:
+        model = Favorite
+        fields = ["id", "product", "product_id", "created_at"]
+        read_only_fields = ["id", "created_at"]
 

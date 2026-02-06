@@ -6,11 +6,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import Cart, CartItem, Image, Order, OrderItem, Product, Profile, Review
+from .models import Cart, CartItem, Favorite, Image, Order, OrderItem, Product, Profile, Review
 from .permissions import IsAdmin, IsOwnerOrReadOnly, IsSeller
 from .serializers import (
     CartItemSerializer,
     CartSerializer,
+    FavoriteSerializer,
     ImageSerializer,
     OrderSerializer,
     ProductSerializer,
@@ -88,8 +89,8 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     filterset_fields = ["seller", "is_published"]
     ordering_fields = ["price", "created_at"]
-    # Регистронезависимый поиск по имени и описанию (icontains)
-    search_fields = ["name", "description"]
+    # Умный поиск с поддержкой частичных совпадений
+    search_fields = []  # Отключаем стандартный поиск, используем кастомный
 
     def get_permissions(self):
         if self.action in {"create", "update", "partial_update", "destroy"}:
@@ -111,8 +112,100 @@ class ProductViewSet(viewsets.ModelViewSet):
         if self.action == "retrieve":
             return Product.objects.filter(is_published=True).select_related("seller")
         
+        # Умный поиск
+        search_query = self.request.query_params.get('search', '').strip()
+        if search_query and self.action == 'list':
+            qs = self._smart_search(qs, search_query)
+        
         # Для списка товаров показываем только опубликованные
         return qs
+
+    def _smart_search(self, queryset, search_query):
+        """
+        Умный поиск с разбиением на части и нечетким сопоставлением.
+        Ищет по названию и описанию товара с ранжированием по релевантности.
+        """
+        from django.db.models import Q, Case, When, IntegerField, Value
+        
+        # Нормализуем запрос
+        search_query = search_query.lower().strip()
+        
+        if len(search_query) < 2:
+            return queryset.filter(
+                Q(name__icontains=search_query) | Q(description__icontains=search_query)
+            )
+        
+        # Разбиваем запрос на слова
+        words = [w for w in search_query.split() if len(w) >= 2]
+        
+        if not words:
+            return queryset.filter(
+                Q(name__icontains=search_query) | Q(description__icontains=search_query)
+            )
+        
+        # Создаем условия для ранжирования
+        relevance_cases = []
+        q_objects = Q()
+        
+        # 1. Полное совпадение фразы в названии (максимальный приоритет)
+        q_objects |= Q(name__iexact=search_query)
+        relevance_cases.append(When(name__iexact=search_query, then=Value(1000)))
+        
+        # 2. Название начинается с фразы
+        q_objects |= Q(name__istartswith=search_query)
+        relevance_cases.append(When(name__istartswith=search_query, then=Value(900)))
+        
+        # 3. Название содержит фразу
+        q_objects |= Q(name__icontains=search_query)
+        relevance_cases.append(When(name__icontains=search_query, then=Value(800)))
+        
+        # 4. Описание содержит фразу
+        q_objects |= Q(description__icontains=search_query)
+        relevance_cases.append(When(description__icontains=search_query, then=Value(700)))
+        
+        # 5. Поиск по отдельным словам
+        for idx, word in enumerate(words):
+            priority = 600 - (idx * 50)  # Первые слова важнее
+            
+            # Точное совпадение слова в названии
+            q_objects |= Q(name__iexact=word)
+            relevance_cases.append(When(name__iexact=word, then=Value(priority)))
+            
+            # Название начинается со слова
+            q_objects |= Q(name__istartswith=word)
+            relevance_cases.append(When(name__istartswith=word, then=Value(priority - 50)))
+            
+            # Название содержит слово
+            q_objects |= Q(name__icontains=word)
+            relevance_cases.append(When(name__icontains=word, then=Value(priority - 100)))
+            
+            # Описание содержит слово
+            q_objects |= Q(description__icontains=word)
+            relevance_cases.append(When(description__icontains=word, then=Value(priority - 150)))
+            
+            # 6. Нечеткий поиск: разбиваем слово на биграммы (2 буквы)
+            if len(word) >= 3:
+                bigrams = [word[i:i+2] for i in range(len(word) - 1)]
+                for bigram in bigrams:
+                    q_objects |= Q(name__icontains=bigram)
+                    q_objects |= Q(description__icontains=bigram)
+                    relevance_cases.append(When(name__icontains=bigram, then=Value(priority - 200)))
+                    relevance_cases.append(When(description__icontains=bigram, then=Value(priority - 250)))
+        
+        # Применяем фильтр и сортируем по релевантности
+        filtered_qs = queryset.filter(q_objects).distinct()
+        
+        # Добавляем поле релевантности и сортируем
+        if relevance_cases:
+            filtered_qs = filtered_qs.annotate(
+                relevance=Case(
+                    *relevance_cases,
+                    default=Value(0),
+                    output_field=IntegerField()
+                )
+            ).order_by('-relevance', '-created_at')
+        
+        return filtered_qs
 
 
 class ImageViewSet(viewsets.ModelViewSet):
@@ -591,3 +684,56 @@ class SellerAnalyticsView(generics.GenericAPIView):
 
         return Response(data)
 
+
+
+class FavoriteViewSet(viewsets.ModelViewSet):
+    """Управление избранным: /api/favorites/"""
+
+    serializer_class = FavoriteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get', 'post', 'delete', 'head', 'options']
+
+    def get_queryset(self):
+        return Favorite.objects.filter(user=self.request.user).select_related("product", "product__seller").prefetch_related("product__images")
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=["post"], url_path="toggle")
+    def toggle(self, request):
+        """
+        Переключение избранного для товара.
+        POST /api/favorites/toggle/
+        Body: { "product_id": 1 }
+        """
+        product_id = request.data.get("product_id")
+        if not product_id:
+            return Response(
+                {"detail": "Поле 'product_id' обязательно."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            product = Product.objects.get(id=product_id, is_published=True)
+        except Product.DoesNotExist:
+            return Response(
+                {"detail": "Товар не найден."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        favorite, created = Favorite.objects.get_or_create(
+            user=request.user,
+            product=product,
+        )
+
+        if not created:
+            favorite.delete()
+            return Response(
+                {"detail": "Товар удален из избранного.", "is_favorite": False},
+                status=status.HTTP_200_OK,
+            )
+
+        return Response(
+            {"detail": "Товар добавлен в избранное.", "is_favorite": True},
+            status=status.HTTP_201_CREATED,
+        )

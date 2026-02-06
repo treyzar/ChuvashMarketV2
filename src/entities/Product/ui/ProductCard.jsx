@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { formatPrice } from "../../../shared/lib";
 import { ROUTES } from "../../../shared/constants";
+import { FavoriteButton } from "../../../features/AddToFavorites";
 import styles from "./ProductCard.module.css";
 
 export const ProductCard = ({ product, footer }) => {
@@ -24,6 +25,7 @@ export const ProductCard = ({ product, footer }) => {
     <article className={styles.card} onClick={handleCardClick} style={{ cursor: 'pointer' }}>
       <div className={styles.imageWrapper}>
         {imageSrc ? <img src={imageSrc} alt={product.name} /> : null}
+        <FavoriteButton productId={product.id} variant="card" />
       </div>
       <div className={styles.content}>
         <h3 className={styles.title}>{product.name}</h3>

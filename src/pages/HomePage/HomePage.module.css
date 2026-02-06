@@ -8,15 +8,16 @@
 .hero {
   border-radius: 24px;
   padding: 3rem 2.5rem;
-  background: linear-gradient(135deg, rgba(36, 63, 75, 0.95) 0%, rgba(52, 73, 94, 0.95) 100%);
+  background: linear-gradient(135deg, var(--gradient-start, rgba(36, 63, 75, 0.95)) 0%, var(--gradient-end, rgba(52, 73, 94, 0.95)) 100%);
   color: #ffffff;
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
   gap: 2rem;
   margin-bottom: 3rem;
-  box-shadow: 0 20px 60px rgba(36, 63, 75, 0.3);
+  box-shadow: var(--shadow-lg, 0 20px 60px rgba(36, 63, 75, 0.3));
   position: relative;
   overflow: hidden;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .hero::before {

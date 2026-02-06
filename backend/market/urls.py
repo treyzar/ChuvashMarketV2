@@ -7,6 +7,7 @@ from .views import (
     CartViewSet,
     CurrentUserView,
     BecomeSellerView,
+    FavoriteViewSet,
     ImageViewSet,
     JwtLoginView,
     JwtRefreshView,
@@ -26,6 +27,7 @@ router.register(r"cart", CartViewSet, basename="cart")
 router.register(r"orders", OrderViewSet, basename="order")
 router.register(r"reviews", ReviewViewSet, basename="review")
 router.register(r"images", ImageViewSet, basename="image")
+router.register(r"favorites", FavoriteViewSet, basename="favorite")
 router.register(r"sellers/products", SellerProductViewSet, basename="seller-products")
 router.register(r"sellers/orders", SellerOrderViewSet, basename="seller-orders")
 router.register(r"users", AdminUserViewSet, basename="admin-users")

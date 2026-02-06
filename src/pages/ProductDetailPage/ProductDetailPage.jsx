@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchProductById } from "../../shared/api/products";
 import { AddToCartButton } from "../../features";
+import { FavoriteButton } from "../../features/AddToFavorites";
 import { formatPrice } from "../../shared/lib";
 import styles from "./ProductDetailPage.module.css";
 import {
@@ -207,7 +208,10 @@ export const ProductDetailPage = () => {
               </div>
             </div>
 
-            <AddToCartButton product={product} quantity={quantity} className={styles.cartButton} />
+            <div className={styles.actionButtons}>
+              <AddToCartButton product={product} quantity={quantity} className={styles.cartButton} />
+              {product.id && <FavoriteButton productId={product.id} variant="large" />}
+            </div>
           </div>
 
           {/* Особенности товара */}

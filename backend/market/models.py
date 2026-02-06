@@ -242,3 +242,28 @@ class Review(models.Model):
         verbose_name_plural = "отзывы"
         unique_together = ("product", "user")
 
+
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        User,
+        related_name="favorites",
+        on_delete=models.CASCADE,
+        verbose_name="пользователь",
+    )
+    product = models.ForeignKey(
+        Product,
+        related_name="favorited_by",
+        on_delete=models.CASCADE,
+        verbose_name="товар",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="добавлено")
+
+    class Meta:
+        verbose_name = "избранное"
+        verbose_name_plural = "избранное"
+        unique_together = ("user", "product")
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.user.username} → {self.product.name}"
+

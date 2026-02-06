@@ -2,4 +2,5 @@
 // Главные экспорты фич
 
 export { AddToCartButton } from "./AddToCart";
+export { FavoriteButton } from "./AddToFavorites";
 

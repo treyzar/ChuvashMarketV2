@@ -1,0 +1,44 @@
+.button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+.label {
+  white-space: nowrap;
+}
+
+@media (max-width: 968px) {
+  .label {
+    display: none;
+  }
+
+  .button {
+    padding: 0.625rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .button {
+    padding: 0.5rem;
+  }
+}

@@ -25,6 +25,7 @@ export const API_ENDPOINTS = {
   CART: "/api/cart/",
   PROFILE: "/api/users/profile/",
   ORDERS: "/api/orders/",
+  FAVORITES: "/api/favorites/",
   SELLER_PRODUCTS: "/api/sellers/products/",
   SELLER_ORDERS: "/api/sellers/orders/",
   SELLER_ANALYTICS: "/api/sellers/analytics/",

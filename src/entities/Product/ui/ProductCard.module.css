@@ -22,6 +22,7 @@
   background: linear-gradient(135deg, #3f769a, #3a5981);
   height: 180px;
   flex-shrink: 0;
+  position: relative;
 }
 
 .imageWrapper img {

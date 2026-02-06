@@ -1,0 +1,80 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.button:hover:not(:disabled) {
+  background: #ffffff;
+  border-color: #ef4444;
+  color: #ef4444;
+  transform: scale(1.05);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button.active {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.button.active:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+.button.large {
+  padding: 0.625rem 1.25rem;
+  font-size: 0.9375rem;
+}
+
+.button.icon {
+  padding: 0.5rem;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+}
+
+.button.card {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.button.card:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+@media (max-width: 640px) {
+  .button.large {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .button.card {
+    width: 32px;
+    height: 32px;
+    padding: 0.4rem;
+  }
+}
